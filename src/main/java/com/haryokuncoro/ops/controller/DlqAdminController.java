@@ -1,8 +1,10 @@
 package com.haryokuncoro.ops.controller;
 
 
+import com.haryokuncoro.ops.dto.ApiResponse;
 import com.haryokuncoro.ops.entity.FailedEvent;
 import com.haryokuncoro.ops.service.DlqReplayService;
+import com.haryokuncoro.ops.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,19 +24,17 @@ public class DlqAdminController {
     private final DlqReplayService replayService;
 
     @PostMapping("/replay/{id}")
-    public ResponseEntity<String> replay(
-            @PathVariable UUID id
-    ) throws Exception {
-
+    public ResponseEntity<ApiResponse<String>> replay(@PathVariable UUID id) throws Exception {
         replayService.replay(id);
-
         return ResponseEntity.ok(
-                "Replay triggered"
+                ResponseUtil.success("", "Replay triggered")
         );
     }
 
     @GetMapping
-    public List<FailedEvent> findAll() {
-        return replayService.findAll();
+    public ResponseEntity<ApiResponse<List<FailedEvent>>> findAll() {
+        return ResponseEntity.ok(
+                ResponseUtil.success("", replayService.findAll())
+        );
     }
 }

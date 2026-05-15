@@ -25,17 +25,10 @@ public class PaymentDlqConsumer {
             topics = "order.created.dlq",
             groupId = "payment-dlq-group"
     )
-    public void consume(
-            OrderCreatedEvent event
-    ) throws Exception {
+    public void consume(OrderCreatedEvent event) throws Exception {
+        log.error("DLQ EVENT RECEIVED {}", event.orderId());
 
-        log.error(
-                "DLQ EVENT RECEIVED {}",
-                event.orderId()
-        );
-
-        FailedEvent failedEvent =
-                new FailedEvent();
+        FailedEvent failedEvent = new FailedEvent();
 
         failedEvent.setId(UUID.randomUUID());
 

@@ -26,12 +26,7 @@ public class PaymentConsumer {
             groupId = "payment-group"
     )
     public void consume(OrderCreatedEvent event) {
-
-        log.info(
-                "Received order event {}",
-                event.orderId()
-        );
-
+        log.info("Received order event {}", event.orderId());
         paymentService.processPayment(event);
     }
 }

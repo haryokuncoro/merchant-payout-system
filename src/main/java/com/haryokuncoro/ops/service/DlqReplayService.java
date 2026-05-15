@@ -20,8 +20,7 @@ public class DlqReplayService {
 
     private final FailedEventRepository repository;
 
-    private final KafkaTemplate<String, Object>
-            kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     private final ObjectMapper objectMapper;
 
@@ -29,12 +28,10 @@ public class DlqReplayService {
     public void replay(UUID failedEventId)
             throws Exception {
 
-        FailedEvent failedEvent =
-                repository.findById(failedEventId)
+        FailedEvent failedEvent = repository.findById(failedEventId)
                         .orElseThrow();
 
-        OrderCreatedEvent event =
-                objectMapper.readValue(
+        OrderCreatedEvent event = objectMapper.readValue(
                         failedEvent.getPayload(),
                         OrderCreatedEvent.class
                 );
@@ -46,13 +43,8 @@ public class DlqReplayService {
         );
 
         failedEvent.setStatus("REPLAYED");
-
         repository.save(failedEvent);
-
-        log.info(
-                "Replayed failed event {}",
-                failedEventId
-        );
+        log.info("Replayed failed event {}", failedEventId);
     }
 
     public List<FailedEvent> findAll() {

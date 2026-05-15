@@ -1,7 +1,9 @@
 package com.haryokuncoro.ops.controller;
 
+import com.haryokuncoro.ops.dto.ApiResponse;
 import com.haryokuncoro.ops.dto.CreateOrderRequest;
 import com.haryokuncoro.ops.service.OrderService;
+import com.haryokuncoro.ops.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,13 +21,10 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<String> create(
-            @RequestBody CreateOrderRequest request
-    ) {
-
-        UUID orderId =
-                orderService.createOrder(request);
-
-        return ResponseEntity.ok(orderId.toString());
+    public ResponseEntity<ApiResponse<String>> create(@RequestBody CreateOrderRequest request) {
+        UUID orderId = orderService.createOrder(request);
+        return ResponseEntity.ok(
+                ResponseUtil.success("", orderId.toString())
+        );
     }
 }

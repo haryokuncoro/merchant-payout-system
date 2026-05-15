@@ -10,18 +10,9 @@ import org.springframework.stereotype.Service;
 public class PaymentService {
 
     public void processPayment(OrderCreatedEvent event) {
-
-        log.info(
-                "Processing payment for order {}",
-                event.orderId()
-        );
-
+        log.info("Processing payment for order {}", event.orderId());
         simulateDelay();
-
-        log.info(
-                "Payment success for order {}",
-                event.orderId()
-        );
+        log.info("Payment success for order {}", event.orderId());
     }
 
     private void simulateDelay() {
