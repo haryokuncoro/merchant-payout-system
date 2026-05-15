@@ -10,6 +10,8 @@ CREATE TABLE failed_events (
 
                                error_message TEXT,
 
+                               retry_count INTEGER DEFAULT 0,
+
                                status VARCHAR(50),
 
                                created_at TIMESTAMP NOT NULL

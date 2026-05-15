@@ -47,13 +47,9 @@ public class PaymentDlqConsumer {
         failedEvent.setErrorMessage(
                 "Payment processing failed"
         );
-
-        failedEvent.setStatus("FAILED");
-
-        failedEvent.setCreatedAt(
-                Instant.now()
-        );
-
+        failedEvent.setRetryCount(0);
+        failedEvent.setStatus(FailedEvent.Status.FAILED);
+        failedEvent.setCreatedAt(Instant.now());
         repository.save(failedEvent);
     }
 }

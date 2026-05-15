@@ -17,6 +17,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class DlqReplayService {
+    private static final int MAX_RETRY = 3;
 
     private final FailedEventRepository repository;
 
@@ -25,26 +26,41 @@ public class DlqReplayService {
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public void replay(UUID failedEventId)
-            throws Exception {
+    public void replay(UUID failedEventId) throws Exception {
+        FailedEvent failedEvent = repository.findById(failedEventId).orElseThrow();
+        if (failedEvent.getRetryCount() >= MAX_RETRY) {
+            log.warn("Failed event {} has reached max retry count. Marking as permanently failed.", failedEventId);
+            failedEvent.setStatus(FailedEvent.Status.PERMANENTLY_FAILED);
+            repository.save(failedEvent);
+            return;
+        }
 
-        FailedEvent failedEvent = repository.findById(failedEventId)
-                        .orElseThrow();
+        try {
+            failedEvent.setStatus(FailedEvent.Status.REPLAYING);
+            failedEvent.setRetryCount(failedEvent.getRetryCount() + 1);
+            repository.save(failedEvent);
 
-        OrderCreatedEvent event = objectMapper.readValue(
-                        failedEvent.getPayload(),
-                        OrderCreatedEvent.class
-                );
+            OrderCreatedEvent event = objectMapper.readValue(
+                    failedEvent.getPayload(),
+                    OrderCreatedEvent.class
+            );
 
-        kafkaTemplate.send(
-                failedEvent.getTopic(),
-                event.orderId().toString(),
-                event
-        );
+            kafkaTemplate.send(
+                    failedEvent.getTopic(),
+                    event.orderId().toString(),
+                    event
+            );
 
-        failedEvent.setStatus("REPLAYED");
-        repository.save(failedEvent);
-        log.info("Replayed failed event {}", failedEventId);
+            failedEvent.setStatus(FailedEvent.Status.REPLAYED);
+            repository.save(failedEvent);
+            log.info("Replayed failed event {}", failedEventId);
+
+        }catch (Exception e){
+            log.error("Error replaying failed event {}: {}", failedEventId, e.getMessage());
+            failedEvent.setStatus(FailedEvent.Status.FAILED);
+            repository.save(failedEvent);
+        }
+
     }
 
     public List<FailedEvent> findAll() {

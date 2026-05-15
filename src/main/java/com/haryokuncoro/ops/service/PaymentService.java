@@ -13,6 +13,11 @@ public class PaymentService {
         log.info("Processing payment for order {}", event.orderId());
         simulateDelay();
         log.info("Payment success for order {}", event.orderId());
+        //simulate failure
+//        throw new RuntimeException(
+//                "Payment gateway timeout"
+//        );
+
     }
 
     private void simulateDelay() {
