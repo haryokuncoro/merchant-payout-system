@@ -10,14 +10,16 @@ import org.springframework.stereotype.Service;
 @Service @Slf4j
 @RequiredArgsConstructor
 public class OrderEventPublisher {
+    private static final String TOPIC = "order.created";
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public void publish(OrderCreatedEvent event) {
         log.info("Publishing OrderCreatedEvent: {}", event);
+        String key = event.orderId().toString();
         kafkaTemplate.send(
-                "order.created",
-                event.orderId().toString(),
+                TOPIC,
+                key,
                 event
         );
     }
