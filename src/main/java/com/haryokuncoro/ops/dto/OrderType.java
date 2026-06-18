@@ -1,6 +1,6 @@
 package com.haryokuncoro.ops.dto;
 
-public enum PayoutType {
+public enum OrderType {
     ORDER,
     TERMINAL,
     RESERVE

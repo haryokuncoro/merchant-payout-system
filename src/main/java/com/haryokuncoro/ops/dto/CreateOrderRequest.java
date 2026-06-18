@@ -4,9 +4,10 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public record CreateOrderRequest(
+        UUID orderId,
         UUID customerId,
         UUID merchantId,
-        String type, //ORDER, TERMINAL, RESERVE
+        OrderType type,
         BigDecimal amount
 ) {
 }

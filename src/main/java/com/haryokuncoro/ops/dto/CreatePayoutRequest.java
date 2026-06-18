@@ -7,6 +7,6 @@ import java.util.UUID;
 @Data
 public class CreatePayoutRequest {
     UUID merchantId;
-    PayoutType type;
+    OrderType type;
     String billingCycle;
 }

@@ -12,7 +12,7 @@ public class NotificationService {
 
         log.info(
                 "Sending notification for order {}",
-                event.orderId()
+                event.eventId()
         );
     }
 }

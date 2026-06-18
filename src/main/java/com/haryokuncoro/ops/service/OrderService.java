@@ -7,6 +7,7 @@ import com.haryokuncoro.ops.event.producer.OrderEventPublisher;
 import com.haryokuncoro.ops.repository.OrderRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -14,36 +15,43 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional @Slf4j
 public class OrderService {
 
     private final OrderRepository repository;
     private final OrderEventPublisher publisher;
 
-    public UUID createOrder(CreateOrderRequest request) {
-
-        UUID orderId = UUID.randomUUID();
-
-        Order order = new Order();
-        order.setId(orderId);
-        order.setCustomerId(request.customerId());
-        order.setAmount(request.amount());
-        order.setStatus("CREATED");
-        order.setCreatedAt(Instant.now());
-
-        repository.save(order);
-
+    public UUID publishOrder(CreateOrderRequest request) {
+        UUID orderId = request.orderId();
         OrderCreatedEvent event =
                 new OrderCreatedEvent(
-                        UUID.randomUUID(),
                         orderId,
                         request.customerId(),
+                        request.merchantId(),
+                        request.type(),
                         request.amount(),
                         Instant.now()
                 );
-
         publisher.publish(event);
-
         return orderId;
+    }
+
+    @Transactional
+    public void createOrder(OrderCreatedEvent event){
+        if (repository.existsById(event.eventId())) {
+            log.warn("Order already exists. orderId={}", event.eventId());
+            return;
+        }
+        Order order = Order.builder()
+                .id(event.eventId())
+                .merchantId(event.merchantId())
+                .customerId(event.customerId())
+                .type(event.type())
+                .amount(event.amount())
+                .status("CREATED")
+                .createdAt(Instant.now())
+                .build();
+        repository.save(order);
+        log.info("saved order data");
     }
 }

@@ -15,7 +15,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PaymentDlqConsumer {
+public class OrderDlqConsumer {
 
     private final FailedEventRepository repository;
 
@@ -26,7 +26,7 @@ public class PaymentDlqConsumer {
             groupId = "payment-dlq-group"
     )
     public void consume(OrderCreatedEvent event) throws Exception {
-        log.error("DLQ EVENT RECEIVED {}", event.orderId());
+        log.error("DLQ EVENT RECEIVED {}", event.eventId());
 
         FailedEvent failedEvent = new FailedEvent();
 

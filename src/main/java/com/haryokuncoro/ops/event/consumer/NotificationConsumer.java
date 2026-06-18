@@ -32,13 +32,14 @@ public class NotificationConsumer {
             concurrency = "1"
     )
     public void consume(OrderCreatedEvent event, Acknowledgment acknowledgment) {
+        String orderId = event.eventId().toString();
         try {
-            log.info("Received order event {}", event.orderId());
+            log.info("Received order event {}", orderId);
             notificationService.send(event);
             acknowledgment.acknowledge();
-            log.info("Notification sent successfully for orderId={}", event.orderId());
+            log.info("Notification sent successfully for orderId={}", orderId);
         } catch (Exception e) {
-            log.error("Error sending notification for orderId={}, error={}", event.orderId(), e.getMessage());
+            log.error("Error sending notification for orderId={}, error={}", orderId, e.getMessage());
             throw e;
         }
 
