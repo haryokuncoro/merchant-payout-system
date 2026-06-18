@@ -1,7 +1,6 @@
 package com.haryokuncoro.ops.controller;
 
 import com.haryokuncoro.ops.dto.ApiResponse;
-import com.haryokuncoro.ops.dto.CreateOrderRequest;
 import com.haryokuncoro.ops.dto.CreatePayoutRequest;
 import com.haryokuncoro.ops.service.PayoutService;
 import com.haryokuncoro.ops.util.ResponseUtil;
@@ -22,6 +21,14 @@ public class PayoutController {
     @PostMapping
     public ResponseEntity<ApiResponse<String>> create(@RequestBody CreatePayoutRequest request) {
         payoutService.createPayout(request);
+        return ResponseEntity.ok(
+                ResponseUtil.success("finished payout", null)
+        );
+    }
+
+    @PostMapping("/jobs")
+    public ResponseEntity<ApiResponse<String>> publishPayoutJobs(@RequestBody CreatePayoutRequest request) {
+        payoutService.publishPayoutJobs(request);
         return ResponseEntity.ok(
                 ResponseUtil.success("finished payout", null)
         );

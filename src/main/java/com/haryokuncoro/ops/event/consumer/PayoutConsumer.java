@@ -1,7 +1,7 @@
 package com.haryokuncoro.ops.event.consumer;
 
-import com.haryokuncoro.ops.dto.OrderCreatedEvent;
-import com.haryokuncoro.ops.service.OrderService;
+import com.haryokuncoro.ops.dto.PayoutJobEvent;
+import com.haryokuncoro.ops.service.PayoutService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -13,9 +13,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class OrderConsumer {
-
-    private final OrderService orderService;
+public class PayoutConsumer {
+    private final PayoutService payoutService;
 
     @RetryableTopic(
             attempts = "3",
@@ -26,20 +25,18 @@ public class OrderConsumer {
             dltTopicSuffix = ".dlq"
     )
     @KafkaListener(
-            topics = "order.created",
-            groupId = "order-group",
+            topics = "payout.created",
+            groupId = "payout-group",
             containerFactory = "manualAckFactory",
             concurrency = "1"
     )
-    public void consume(OrderCreatedEvent event, Acknowledgment acknowledgment) {
-        String orderId = event.eventId().toString();
+    public void consume(PayoutJobEvent event, Acknowledgment acknowledgment) {
+        String eventId = event.getEventId().toString();
         try {
-            log.info("Received order event {}", orderId);
-            orderService.createOrder(event);
+            payoutService.handlePayoutJobs(event);
             acknowledgment.acknowledge();
-            log.info("Order processed successfully for orderId={}", orderId);
         }catch (Exception e) {
-            log.error("Error processing order ={}, error={}", orderId, e.getMessage());
+            log.error("Error processing payout ={}, error={}", eventId, e.getMessage());
             throw e;
         }
 

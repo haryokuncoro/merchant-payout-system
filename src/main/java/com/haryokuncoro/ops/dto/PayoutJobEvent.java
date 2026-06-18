@@ -7,8 +7,11 @@ import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
-@Data @Builder @NoArgsConstructor @AllArgsConstructor
-public class CreatePayoutRequest {
+@Data
+@Builder
+@AllArgsConstructor @NoArgsConstructor
+public class PayoutJobEvent {
+    UUID eventId;
     UUID merchantId;
     OrderType type;
     String billingCycle;
