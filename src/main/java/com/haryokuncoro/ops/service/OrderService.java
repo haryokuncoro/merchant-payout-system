@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -17,6 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional @Slf4j
 public class OrderService {
+    private static final BigDecimal FEE_RATE = new BigDecimal("0.01");
 
     private final OrderRepository repository;
     private final OrderEventPublisher publisher;
@@ -42,16 +45,26 @@ public class OrderService {
             log.warn("Order already exists. orderId={}", event.eventId());
             return;
         }
+        BigDecimal feeAmount = calculateFee(event.amount());
+        BigDecimal disburseAmount = event.amount().subtract(feeAmount);
+
         Order order = Order.builder()
                 .id(event.eventId())
                 .merchantId(event.merchantId())
                 .customerId(event.customerId())
                 .type(event.type())
                 .amount(event.amount())
+                .feeAmount(feeAmount)
+                .disburseAmount(disburseAmount)
                 .status("CREATED")
                 .createdAt(Instant.now())
                 .build();
         repository.save(order);
         log.info("saved order data");
+    }
+
+    private BigDecimal calculateFee(BigDecimal amount) {
+        return amount.multiply(FEE_RATE)
+                .setScale(2, RoundingMode.HALF_UP);
     }
 }

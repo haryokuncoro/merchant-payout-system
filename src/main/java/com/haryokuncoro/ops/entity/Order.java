@@ -42,6 +42,12 @@ public class Order {
     private BigDecimal amount;
 
     @Column(nullable = false)
+    private BigDecimal feeAmount;
+
+    @Column(nullable = false)
+    private BigDecimal disburseAmount;
+
+    @Column(nullable = false)
     private String status;
 
     @Column(nullable = false)

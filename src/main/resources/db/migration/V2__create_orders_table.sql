@@ -4,6 +4,8 @@ CREATE TABLE orders (
                         merchant_id UUID NOT NULL,
                         type VARCHAR(50) NOT NULL,
                         amount NUMERIC(19,2) NOT NULL,
+                        fee_amount NUMERIC(19,2) NOT NULL,
+                        disburse_amount NUMERIC(19,2) NOT NULL,
                         status VARCHAR(50) NOT NULL,
                         created_at TIMESTAMP WITH TIME ZONE NOT NULL
 );

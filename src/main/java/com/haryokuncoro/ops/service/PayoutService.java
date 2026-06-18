@@ -1,5 +1,6 @@
 package com.haryokuncoro.ops.service;
 
+import com.haryokuncoro.ops.dto.CreatePayoutJobRequest;
 import com.haryokuncoro.ops.dto.CreatePayoutRequest;
 import com.haryokuncoro.ops.dto.PayoutJobEvent;
 import com.haryokuncoro.ops.event.producer.PayoutEventPublisher;
@@ -25,17 +26,8 @@ public class PayoutService {
     }
 
     @Transactional
-    public void publishPayoutJobs(CreatePayoutRequest request) {
-        log.info("publishPayoutJobs -> gather order data");
-        List<UUID> merchants = new ArrayList<>();
-        merchants.add(UUID.randomUUID());
-        merchants.add(UUID.randomUUID());
-        merchants.add(UUID.randomUUID());
-        merchants.add(UUID.randomUUID());
-        merchants.add(UUID.randomUUID());
-        merchants.add(UUID.randomUUID());
-        merchants.add(UUID.randomUUID());
-        merchants.add(UUID.randomUUID());
+    public void publishPayoutJobs(CreatePayoutJobRequest request) {
+        List<UUID> merchants = findEligibleMerchants();
         for(UUID merchantId : merchants){
             UUID id = UUID.randomUUID();
             PayoutJobEvent event = PayoutJobEvent.builder()
@@ -57,6 +49,19 @@ public class PayoutService {
                 .billingCycle(event.getBillingCycle())
                 .type(event.getType())
                 .build());
+    }
+
+    private List<UUID> findEligibleMerchants(){
+        List<UUID> merchants = new ArrayList<>();
+        merchants.add(UUID.randomUUID());
+        merchants.add(UUID.randomUUID());
+        merchants.add(UUID.randomUUID());
+        merchants.add(UUID.randomUUID());
+        merchants.add(UUID.randomUUID());
+        merchants.add(UUID.randomUUID());
+        merchants.add(UUID.randomUUID());
+        merchants.add(UUID.randomUUID());
+        return merchants;
     }
 
 }
