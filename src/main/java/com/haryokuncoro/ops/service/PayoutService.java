@@ -12,6 +12,7 @@ import com.haryokuncoro.ops.entity.Payout;
 import com.haryokuncoro.ops.entity.PayoutTransaction;
 import com.haryokuncoro.ops.event.producer.PayoutEventPublisher;
 import com.haryokuncoro.ops.event.producer.StripePayoutEventPublisher;
+import com.haryokuncoro.ops.exception.NotFoundException;
 import com.haryokuncoro.ops.repository.BillingOrderRepository;
 import com.haryokuncoro.ops.repository.MerchantRepository;
 import com.haryokuncoro.ops.repository.PayoutRepository;
@@ -47,7 +48,19 @@ public class PayoutService {
         UUID merchantId = request.getMerchantId();
         LocalDate periodStart = request.getPeriodStart();
         LocalDate periodEnd = request.getPeriodEnd();
-        Merchant merchant = merchantRepository.findById(merchantId).orElseThrow();
+        Merchant merchant = merchantRepository.findById(merchantId).orElseThrow(
+                () -> new NotFoundException("merchant not found")
+        );
+
+        Payout existingPayout = payoutRepository.findByMerchantIdAndPeriodStartAndPeriodEnd(merchantId, periodStart, periodEnd);
+        if (existingPayout != null) {
+            if(existingPayout.getStatus().equals(PayoutStatus.FAILED) || existingPayout.getStatus().equals(PayoutStatus.CANCELLED)){
+                publishStripePayoutJob(existingPayout);
+                return existingPayout;
+            }
+            throw new IllegalStateException("Payout already exists");
+        }
+
         List<BillingOrder> orders = orderRepository.findEligibleForPayout(
                         merchantId,
                         periodStart.atStartOfDay().toInstant(ZoneOffset.UTC),
@@ -61,7 +74,6 @@ public class PayoutService {
         }
 
         BigDecimal payoutAmount = BigDecimal.ZERO;
-
         List<PayoutTransaction> payoutTransactions = new ArrayList<>();
 
         Payout payout = Payout.builder()
