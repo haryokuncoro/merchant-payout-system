@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -64,7 +65,7 @@ public class PayoutService {
         List<PayoutTransaction> payoutTransactions = new ArrayList<>();
 
         Payout payout = Payout.builder()
-                .payoutNo(generatePayoutNo())
+                .payoutNo(generateInternalPayoutNo())
                 .merchant(merchant)
                 .periodStart(periodStart)
                 .periodEnd(periodEnd)
@@ -100,7 +101,7 @@ public class PayoutService {
         return payout;
     }
 
-    private String generatePayoutNo() {
+    private String generateInternalPayoutNo() {
         return "PO-" + System.currentTimeMillis();
     }
 
@@ -119,9 +120,12 @@ public class PayoutService {
         );
         payout.setStatus(PayoutStatus.PROCESSING);
         payoutRepository.save(payout);
-        stripeService.transfer();
-        stripeService.payout();
+        String transferId =  stripeService.transfer();
+        String payoutId = stripeService.payout();
+        payout.setStripeTransferId(transferId);
+        payout.setStripePayoutId(payoutId);
         payout.setStatus(PayoutStatus.PAID);
+        payout.setPayoutDate(Instant.now());
         payoutRepository.save(payout);
     }
 

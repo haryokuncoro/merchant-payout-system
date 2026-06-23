@@ -4,15 +4,18 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service @Slf4j
 public class StripeService {
-    public void transfer(){
+    public String transfer(){
         log.info("transfer fund");
+        return "tf_" + UUID.randomUUID();
     }
 
     @Transactional
-    public void payout(){
-        this.transfer();
+    public String payout(){
         log.info("payout fund");
+        return "po_" + UUID.randomUUID();
     }
 }
