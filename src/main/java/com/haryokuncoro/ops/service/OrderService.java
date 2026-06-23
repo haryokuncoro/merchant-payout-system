@@ -24,11 +24,13 @@ public class OrderService {
     private static final ObjectMapper mapper = new ObjectMapper();
     private final BillingOrderRepository repository;
     private final MerchantRepository merchantRepository;
+    private final FeeService feeService;
     private final OrderEventPublisher publisher;
 
-    public OrderService(BillingOrderRepository repository, MerchantRepository merchantRepository, OrderEventPublisher publisher) {
+    public OrderService(BillingOrderRepository repository, MerchantRepository merchantRepository, OrderEventPublisher publisher, FeeService feeService) {
         this.repository = repository;
         this.merchantRepository = merchantRepository;
+        this.feeService = feeService;
         this.publisher = publisher;
         mapper.registerModule(new JavaTimeModule());
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -46,7 +48,6 @@ public class OrderService {
     public void createOrder(OrderCreatedEvent event){
         UUID merchantId = event.getMerchantId();
         String orderNumber = event.getOrderNo();
-
         BillingOrder existingOrder = repository.findByMerchantIdAndOrderNo(merchantId, orderNumber).orElse(null);
 
         if (existingOrder != null) {
@@ -62,6 +63,7 @@ public class OrderService {
             existingOrder.setAmount(event.getAmount());
             existingOrder.setPaymentStatus(event.getPaymentStatus());
             repository.save(existingOrder);
+            feeService.generateOrderFees(existingOrder);
             return;
         }
 
@@ -69,6 +71,7 @@ public class OrderService {
         BillingOrder order = mapper.convertValue(event, BillingOrder.class);
         order.setMerchant(merchant);
         repository.save(order);
+        feeService.generateOrderFees(order);
     }
 
 }

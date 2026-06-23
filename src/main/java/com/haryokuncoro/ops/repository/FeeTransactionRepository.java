@@ -7,6 +7,6 @@ import java.util.List;
 import java.util.UUID;
 
 public interface FeeTransactionRepository extends JpaRepository<FeeTransaction, UUID> {
-
+    void deleteByOrderId(UUID orderId);
     List<FeeTransaction> findByOrderId(UUID orderId);
 }
