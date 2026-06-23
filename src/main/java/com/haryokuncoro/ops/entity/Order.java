@@ -1,6 +1,6 @@
 package com.haryokuncoro.ops.entity;
 
-import com.haryokuncoro.ops.dto.OrderType;
+import com.haryokuncoro.ops.dto.enums.OrderType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

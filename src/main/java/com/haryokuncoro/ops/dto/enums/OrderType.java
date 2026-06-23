@@ -1,4 +1,4 @@
-package com.haryokuncoro.ops.dto;
+package com.haryokuncoro.ops.dto.enums;
 
 public enum OrderType {
     ORDER,
