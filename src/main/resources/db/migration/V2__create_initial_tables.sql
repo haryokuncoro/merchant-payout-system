@@ -16,8 +16,6 @@ CREATE TABLE merchants (
                            merchant_name VARCHAR(255) NOT NULL,
 
                            stripe_account_id VARCHAR(255),
-                           stripe_customer_id VARCHAR(255),
-
                            email VARCHAR(255),
                            phone VARCHAR(50),
 
@@ -47,8 +45,6 @@ CREATE TABLE billing_orders (
                                 currency VARCHAR(10) NOT NULL DEFAULT 'USD',
 
                                 stripe_payment_intent_id VARCHAR(255),
-                                stripe_charge_id VARCHAR(255),
-
                                 payment_status VARCHAR(30) NOT NULL,
 
                                 paid_at TIMESTAMP,

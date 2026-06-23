@@ -38,7 +38,8 @@ public class SeedDataService {
                     .merchantCode("MRC-%03d".formatted(i))
                     .merchantName("Merchant %d".formatted(i))
                     .email("merchant%d@test.com".formatted(i))
-                    .phone("0812345678" + i)
+                    .phone("081234567" + i)
+                    .stripeAccountId("acct_test000"+i)
                     .status(MerchantStatus.ACTIVE)
                     .build();
 

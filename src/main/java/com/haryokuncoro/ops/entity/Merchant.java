@@ -29,8 +29,6 @@ public class Merchant extends BaseEntity {
 
     private String stripeAccountId;
 
-    private String stripeCustomerId;
-
     private String email;
 
     private String phone;

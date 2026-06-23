@@ -42,8 +42,6 @@ public class BillingOrder extends BaseEntity {
 
     private String stripePaymentIntentId;
 
-    private String stripeChargeId;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentStatus paymentStatus;

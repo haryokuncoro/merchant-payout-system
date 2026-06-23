@@ -6,8 +6,11 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.haryokuncoro.ops.dto.CreateOrderRequest;
 import com.haryokuncoro.ops.dto.OrderCreatedEvent;
 import com.haryokuncoro.ops.entity.BillingOrder;
+import com.haryokuncoro.ops.entity.Merchant;
 import com.haryokuncoro.ops.event.producer.OrderEventPublisher;
+import com.haryokuncoro.ops.exception.NotFoundException;
 import com.haryokuncoro.ops.repository.BillingOrderRepository;
+import com.haryokuncoro.ops.repository.MerchantRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +28,7 @@ public class OrderService {
     private static final BigDecimal FEE_RATE = new BigDecimal("0.01");
     private static final ObjectMapper mapper = new ObjectMapper();
     private final BillingOrderRepository repository;
+    private final MerchantRepository merchantRepository;
     private final OrderEventPublisher publisher;
 
     public String publishOrder(CreateOrderRequest request) {
@@ -35,9 +40,12 @@ public class OrderService {
 
     @Transactional
     public void createOrder(OrderCreatedEvent event){
+        UUID merchantId = event.getMerchantId();
+        Merchant merchant = merchantRepository.findById(merchantId).orElseThrow(() -> new NotFoundException("merchant not found"));
         mapper.registerModule(new JavaTimeModule());
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         BillingOrder order = mapper.convertValue(event, BillingOrder.class);
+        order.setMerchant(merchant);
         repository.save(order);
         log.info("saved order data");
     }
