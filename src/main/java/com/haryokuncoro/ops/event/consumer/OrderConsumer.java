@@ -32,14 +32,14 @@ public class OrderConsumer {
             concurrency = "1"
     )
     public void consume(OrderCreatedEvent event, Acknowledgment acknowledgment) {
-        String orderId = event.getOrderNo().toString();
+        String eventId = event.getEventId();
         try {
-            log.info("Received order event {}", orderId);
+            log.info("Received order event {}", eventId);
             orderService.createOrder(event);
             acknowledgment.acknowledge();
-            log.info("Order processed successfully for orderId={}", orderId);
+            log.info("Finished processing order event={}", eventId);
         }catch (Exception e) {
-            log.error("Error processing order ={}, error={}", orderId, e.getMessage());
+            log.error("Error processing event ={}, error={}", eventId, e.getMessage());
             throw e;
         }
 

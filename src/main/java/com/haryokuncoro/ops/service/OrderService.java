@@ -8,32 +8,36 @@ import com.haryokuncoro.ops.dto.OrderCreatedEvent;
 import com.haryokuncoro.ops.entity.BillingOrder;
 import com.haryokuncoro.ops.entity.Merchant;
 import com.haryokuncoro.ops.event.producer.OrderEventPublisher;
+import com.haryokuncoro.ops.exception.BadRequestException;
 import com.haryokuncoro.ops.exception.NotFoundException;
 import com.haryokuncoro.ops.repository.BillingOrderRepository;
 import com.haryokuncoro.ops.repository.MerchantRepository;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.Instant;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 @Transactional @Slf4j
 public class OrderService {
-    private static final BigDecimal FEE_RATE = new BigDecimal("0.01");
     private static final ObjectMapper mapper = new ObjectMapper();
     private final BillingOrderRepository repository;
     private final MerchantRepository merchantRepository;
     private final OrderEventPublisher publisher;
 
-    public String publishOrder(CreateOrderRequest request) {
+    public OrderService(BillingOrderRepository repository, MerchantRepository merchantRepository, OrderEventPublisher publisher) {
+        this.repository = repository;
+        this.merchantRepository = merchantRepository;
+        this.publisher = publisher;
+        mapper.registerModule(new JavaTimeModule());
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+
+    public String publishOrder(CreateOrderRequest request) {
         OrderCreatedEvent event = mapper.convertValue(request, OrderCreatedEvent.class);
+        String eventId = event.getStripePaymentIntentId() + event.getMerchantId();
+        event.setEventId(eventId);
         publisher.publish(event);
         return request.getOrderNo();
     }
@@ -41,17 +45,30 @@ public class OrderService {
     @Transactional
     public void createOrder(OrderCreatedEvent event){
         UUID merchantId = event.getMerchantId();
+        String orderNumber = event.getOrderNo();
+
+        BillingOrder existingOrder = repository.findByMerchantIdAndOrderNo(merchantId, orderNumber).orElse(null);
+
+        if (existingOrder != null) {
+            if (existingOrder.getAmount().compareTo(event.getAmount()) == 0) {
+                log.error(
+                        "duplicate event. merchantId {} orderNumber {} amount {}",
+                        merchantId,
+                        orderNumber,
+                        event.getAmount());
+
+                throw new BadRequestException("order already exists");
+            }
+            existingOrder.setAmount(event.getAmount());
+            existingOrder.setPaymentStatus(event.getPaymentStatus());
+            repository.save(existingOrder);
+            return;
+        }
+
         Merchant merchant = merchantRepository.findById(merchantId).orElseThrow(() -> new NotFoundException("merchant not found"));
-        mapper.registerModule(new JavaTimeModule());
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         BillingOrder order = mapper.convertValue(event, BillingOrder.class);
         order.setMerchant(merchant);
         repository.save(order);
-        log.info("saved order data");
     }
 
-    private BigDecimal calculateFee(BigDecimal amount) {
-        return amount.multiply(FEE_RATE)
-                .setScale(2, RoundingMode.HALF_UP);
-    }
 }

@@ -125,3 +125,16 @@ The project includes Springdoc OpenAPI support. After starting the application, 
 ```bash
 ./gradlew test
 ```
+
+## Create Order
+```json
+{
+  "orderNo": "0001",
+  "merchantId": "1bbbbd6f-fa57-4ed7-866f-f3615f0dbc6c",
+  "amount": 50000,
+  "currency": "USD",
+  "stripePaymentIntentId": "pi_test123",
+  "paymentStatus": "PAID",
+  "paidAt": "2026-06-23T10:00:00Z"
+}
+```
