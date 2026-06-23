@@ -4,12 +4,14 @@ import com.haryokuncoro.ops.dto.CreatePayoutJobRequest;
 import com.haryokuncoro.ops.dto.CreatePayoutRequest;
 import com.haryokuncoro.ops.dto.FeeSummary;
 import com.haryokuncoro.ops.dto.PayoutJobEvent;
+import com.haryokuncoro.ops.dto.StripePayoutJobEvent;
 import com.haryokuncoro.ops.dto.enums.PayoutStatus;
 import com.haryokuncoro.ops.entity.BillingOrder;
 import com.haryokuncoro.ops.entity.Merchant;
 import com.haryokuncoro.ops.entity.Payout;
 import com.haryokuncoro.ops.entity.PayoutTransaction;
 import com.haryokuncoro.ops.event.producer.PayoutEventPublisher;
+import com.haryokuncoro.ops.event.producer.StripePayoutEventPublisher;
 import com.haryokuncoro.ops.repository.BillingOrderRepository;
 import com.haryokuncoro.ops.repository.MerchantRepository;
 import com.haryokuncoro.ops.repository.PayoutRepository;
@@ -36,6 +38,7 @@ public class PayoutService {
     private final PayoutRepository payoutRepository;
     private final PayoutTransactionRepository payoutTransactionRepository;
     private final PayoutEventPublisher publisher;
+    private final StripePayoutEventPublisher stripePayoutEventPublisher;
 
 
     @Transactional
@@ -93,6 +96,7 @@ public class PayoutService {
 
         payout.setTotalAmount(payoutAmount);
         payoutRepository.save(payout);
+        publishStripePayoutJob(payout);
         return payout;
     }
 
@@ -100,7 +104,27 @@ public class PayoutService {
         return "PO-" + System.currentTimeMillis();
     }
 
+    public void publishStripePayoutJob(Payout payout) {
+        StripePayoutJobEvent event = StripePayoutJobEvent.builder()
+                .id(payout.getId())
+                .merchantId(payout.getMerchant().getId())
+                .build();
+        stripePayoutEventPublisher.publish(event);
+    }
+
     @Transactional
+    public void handleStripePayoutJob(StripePayoutJobEvent event){
+        Payout payout = payoutRepository.findById(event.getId()).orElseThrow(
+                () -> new RuntimeException("fail to retrieve payout")
+        );
+        payout.setStatus(PayoutStatus.PROCESSING);
+        payoutRepository.save(payout);
+        stripeService.transfer();
+        stripeService.payout();
+        payout.setStatus(PayoutStatus.PAID);
+        payoutRepository.save(payout);
+    }
+
     public void publishPayoutJobs(CreatePayoutJobRequest request) {
         List<UUID> merchants = findEligibleMerchants(request.getPeriodStart(), request.getPeriodEnd());
         for(UUID merchantId : merchants){
