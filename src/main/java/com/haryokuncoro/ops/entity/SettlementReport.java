@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDate;
 
 @Entity
@@ -47,6 +46,4 @@ public class SettlementReport extends BaseEntity {
     @Column(nullable = false, precision = 18, scale = 2)
     private BigDecimal totalPayoutAmount;
 
-    @Column(nullable = false)
-    private Instant generatedAt;
 }

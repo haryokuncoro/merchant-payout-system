@@ -47,7 +47,7 @@ public class DlqReplayService {
 
             kafkaTemplate.send(
                     failedEvent.getTopic(),
-                    event.eventId().toString(),
+                    event.getOrderNo().toString(),
                     event
             );
 

@@ -22,9 +22,9 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<String>> create(@RequestBody CreateOrderRequest request) {
-        UUID orderId = orderService.publishOrder(request);
+        String orderNumber = orderService.publishOrder(request);
         return ResponseEntity.ok(
-                ResponseUtil.success("", orderId.toString())
+                ResponseUtil.success("", orderNumber)
         );
     }
 }

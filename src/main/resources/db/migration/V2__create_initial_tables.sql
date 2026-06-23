@@ -12,7 +12,6 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE TABLE merchants (
                            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-                           ```
                            merchant_code VARCHAR(50) NOT NULL UNIQUE,
                            merchant_name VARCHAR(255) NOT NULL,
 
@@ -26,7 +25,7 @@ CREATE TABLE merchants (
 
                            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-                           ```
+
 
 );
 
@@ -40,7 +39,6 @@ CREATE INDEX idx_merchants_code
 CREATE TABLE billing_orders (
                                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-                                ```
                                 order_no VARCHAR(100) NOT NULL UNIQUE,
 
                                 merchant_id UUID NOT NULL,
@@ -61,7 +59,7 @@ CREATE TABLE billing_orders (
                                 CONSTRAINT fk_billing_orders_merchant
                                     FOREIGN KEY (merchant_id)
                                     REFERENCES merchants(id)
-                                ```
+
 
 );
 
@@ -78,7 +76,6 @@ CREATE INDEX idx_billing_orders_paid_at
 CREATE TABLE fee_configs (
                              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-                             ```
                              merchant_id UUID NOT NULL,
 
                              fee_type VARCHAR(50) NOT NULL,
@@ -90,11 +87,12 @@ CREATE TABLE fee_configs (
                              effective_to TIMESTAMP,
 
                              created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                             updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
                              CONSTRAINT fk_fee_configs_merchant
                                  FOREIGN KEY (merchant_id)
                                  REFERENCES merchants(id)
-                             ```
+
 
 );
 
@@ -108,7 +106,6 @@ CREATE INDEX idx_fee_configs_merchant
 CREATE TABLE fee_transactions (
                                   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-                                  ```
                                   order_id UUID NOT NULL,
 
                                   fee_type VARCHAR(50) NOT NULL,
@@ -120,11 +117,12 @@ CREATE TABLE fee_transactions (
                                   description VARCHAR(255),
 
                                   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
                                   CONSTRAINT fk_fee_transactions_order
                                       FOREIGN KEY (order_id)
                                       REFERENCES billing_orders(id)
-                                  ```
+
 
 );
 
@@ -141,7 +139,6 @@ CREATE INDEX idx_fee_transactions_type
 CREATE TABLE payouts (
                          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-                         ```
                          payout_no VARCHAR(100) NOT NULL UNIQUE,
 
                          merchant_id UUID NOT NULL,
@@ -161,6 +158,7 @@ CREATE TABLE payouts (
                          payout_date TIMESTAMP,
 
                          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
                          CONSTRAINT fk_payouts_merchant
                              FOREIGN KEY (merchant_id)
@@ -172,7 +170,7 @@ CREATE TABLE payouts (
                                  period_start,
                                  period_end
                              )
-                         ```
+
 
 );
 
@@ -190,7 +188,6 @@ CREATE INDEX idx_payouts_period
 CREATE TABLE payout_transactions (
                                      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-                                     ```
                                      payout_id UUID NOT NULL,
 
                                      order_id UUID NOT NULL,
@@ -202,6 +199,7 @@ CREATE TABLE payout_transactions (
                                      net_amount NUMERIC(18,2) NOT NULL,
 
                                      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
                                      CONSTRAINT fk_payout_transactions_payout
                                          FOREIGN KEY (payout_id)
@@ -210,7 +208,7 @@ CREATE TABLE payout_transactions (
                                      CONSTRAINT fk_payout_transactions_order
                                          FOREIGN KEY (order_id)
                                          REFERENCES billing_orders(id)
-                                     ```
+
 
 );
 
@@ -227,7 +225,6 @@ CREATE INDEX idx_payout_transactions_order
 CREATE TABLE payout_history (
                                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-                                ```
                                 payout_id UUID NOT NULL,
 
                                 old_status VARCHAR(30),
@@ -239,11 +236,12 @@ CREATE TABLE payout_history (
                                 changed_by VARCHAR(100),
 
                                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
                                 CONSTRAINT fk_payout_history_payout
                                     FOREIGN KEY (payout_id)
                                     REFERENCES payouts(id)
-                                ```
+
 
 );
 
@@ -257,7 +255,6 @@ CREATE INDEX idx_payout_history_payout
 CREATE TABLE settlement_reports (
                                     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-                                    ```
                                     report_no VARCHAR(100) NOT NULL UNIQUE,
 
                                     merchant_id UUID NOT NULL,
@@ -271,12 +268,13 @@ CREATE TABLE settlement_reports (
 
                                     total_payout_amount NUMERIC(18,2) NOT NULL,
 
-                                    generated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
                                     CONSTRAINT fk_settlement_reports_merchant
                                         FOREIGN KEY (merchant_id)
                                         REFERENCES merchants(id)
-                                    ```
+
 
 );
 

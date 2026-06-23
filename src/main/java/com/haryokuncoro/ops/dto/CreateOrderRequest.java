@@ -1,15 +1,20 @@
 package com.haryokuncoro.ops.dto;
 
-import com.haryokuncoro.ops.dto.enums.OrderType;
+import com.haryokuncoro.ops.dto.enums.PaymentStatus;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.util.UUID;
+import java.time.Instant;
 
-public record CreateOrderRequest(
-        UUID orderId,
-        UUID customerId,
-        UUID merchantId,
-        OrderType type,
-        BigDecimal amount
-) {
+@Getter @Setter
+public class CreateOrderRequest{
+    private String orderNo;
+    private String merchantId;
+    private BigDecimal amount;
+    private String currency;
+    private String stripePaymentIntentId;
+    private String stripeChargeId;
+    private PaymentStatus paymentStatus;
+    private Instant paidAt;
 }

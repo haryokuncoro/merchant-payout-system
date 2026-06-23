@@ -32,7 +32,7 @@ public class OrderConsumer {
             concurrency = "1"
     )
     public void consume(OrderCreatedEvent event, Acknowledgment acknowledgment) {
-        String orderId = event.eventId().toString();
+        String orderId = event.getOrderNo().toString();
         try {
             log.info("Received order event {}", orderId);
             orderService.createOrder(event);

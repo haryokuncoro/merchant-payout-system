@@ -16,7 +16,7 @@ public class OrderEventPublisher {
 
     public void publish(OrderCreatedEvent event) {
         log.info("Publishing OrderCreatedEvent: {}", event);
-        String key = event.eventId().toString();
+        String key = event.getOrderNo().toString();
         kafkaTemplate.send(
                 TOPIC,
                 key,

@@ -1,16 +1,8 @@
 package com.haryokuncoro.ops.dto;
 
-import com.haryokuncoro.ops.dto.enums.OrderType;
+import lombok.Builder;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.UUID;
+@Builder
+public class OrderCreatedEvent extends  CreateOrderRequest{
 
-public record OrderCreatedEvent(
-        UUID eventId,
-        UUID customerId,
-        UUID merchantId,
-        OrderType type,
-        BigDecimal amount,
-        Instant createdAt
-){};
+}
