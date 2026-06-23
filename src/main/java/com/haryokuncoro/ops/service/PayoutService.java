@@ -17,12 +17,14 @@ import com.haryokuncoro.ops.repository.BillingOrderRepository;
 import com.haryokuncoro.ops.repository.MerchantRepository;
 import com.haryokuncoro.ops.repository.PayoutRepository;
 import com.haryokuncoro.ops.repository.PayoutTransactionRepository;
+import com.stripe.exception.StripeException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -132,13 +134,30 @@ public class PayoutService {
         );
         payout.setStatus(PayoutStatus.PROCESSING);
         payoutRepository.save(payout);
-        String transferId =  stripeService.transfer();
-        String payoutId = stripeService.payout();
+        String transferId = null;
+        String payoutId = null;
+        try {
+            transferId = stripeService.transfer(toCents(payout.getTotalAmount()), payout.getCurrency(), payout.getMerchant().getStripeAccountId());
+            payoutId = stripeService.payout(toCents(payout.getTotalAmount()), payout.getCurrency(), payout.getMerchant().getStripeAccountId());
+        } catch (StripeException e) {
+            payout.setStatus(PayoutStatus.FAILED);
+            payoutRepository.save(payout);
+            log.error("fail to handle stripe payout", e);
+            return;
+        }
+
         payout.setStripeTransferId(transferId);
         payout.setStripePayoutId(payoutId);
-        payout.setStatus(PayoutStatus.PAID);
+        payout.setStatus(PayoutStatus.INITIATED);
         payout.setPayoutDate(Instant.now());
         payoutRepository.save(payout);
+    }
+
+    public long toCents(BigDecimal amount) {
+        return amount
+                .setScale(2, RoundingMode.HALF_UP)
+                .movePointRight(2)
+                .longValueExact();
     }
 
     public void publishPayoutJobs(CreatePayoutJobRequest request) {

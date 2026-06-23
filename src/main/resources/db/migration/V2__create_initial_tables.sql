@@ -213,36 +213,3 @@ CREATE INDEX idx_payout_transactions_payout
 
 CREATE INDEX idx_payout_transactions_order
     ON payout_transactions(order_id);
-
--- =====================================================
--- SETTLEMENT REPORTS
--- =====================================================
-
-CREATE TABLE settlement_reports (
-                                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-                                    report_no VARCHAR(100) NOT NULL UNIQUE,
-
-                                    merchant_id UUID NOT NULL,
-
-                                    period_start DATE NOT NULL,
-                                    period_end DATE NOT NULL,
-
-                                    gross_amount NUMERIC(18,2) NOT NULL,
-
-                                    total_fee NUMERIC(18,2) NOT NULL,
-
-                                    total_payout_amount NUMERIC(18,2) NOT NULL,
-
-                                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-                                    CONSTRAINT fk_settlement_reports_merchant
-                                        FOREIGN KEY (merchant_id)
-                                        REFERENCES merchants(id)
-
-
-);
-
-CREATE INDEX idx_settlement_reports_merchant
-    ON settlement_reports(merchant_id);
