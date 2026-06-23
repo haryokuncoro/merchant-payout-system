@@ -2,13 +2,26 @@ package com.haryokuncoro.ops.service;
 
 import com.haryokuncoro.ops.dto.CreatePayoutJobRequest;
 import com.haryokuncoro.ops.dto.CreatePayoutRequest;
+import com.haryokuncoro.ops.dto.FeeSummary;
 import com.haryokuncoro.ops.dto.PayoutJobEvent;
+import com.haryokuncoro.ops.dto.enums.PayoutStatus;
+import com.haryokuncoro.ops.entity.BillingOrder;
+import com.haryokuncoro.ops.entity.Merchant;
+import com.haryokuncoro.ops.entity.Payout;
+import com.haryokuncoro.ops.entity.PayoutTransaction;
 import com.haryokuncoro.ops.event.producer.PayoutEventPublisher;
+import com.haryokuncoro.ops.repository.BillingOrderRepository;
+import com.haryokuncoro.ops.repository.MerchantRepository;
+import com.haryokuncoro.ops.repository.PayoutRepository;
+import com.haryokuncoro.ops.repository.PayoutTransactionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -17,24 +30,86 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PayoutService {
     private final StripeService stripeService;
+    private final FeeService feeService;
+    private final MerchantRepository merchantRepository;
+    private final BillingOrderRepository orderRepository;
+    private final PayoutRepository payoutRepository;
+    private final PayoutTransactionRepository payoutTransactionRepository;
     private final PayoutEventPublisher publisher;
 
+
     @Transactional
-    public void createPayout(CreatePayoutRequest request){
-        log.info("initiate payout {}", request);
-        stripeService.payout();
+    public Payout triggerPayout(CreatePayoutRequest request) {
+        UUID merchantId = request.getMerchantId();
+        LocalDate periodStart = request.getPeriodStart();
+        LocalDate periodEnd = request.getPeriodEnd();
+        Merchant merchant = merchantRepository.findById(merchantId).orElseThrow();
+        List<BillingOrder> orders = orderRepository.findEligibleForPayout(
+                        merchantId,
+                        periodStart.atStartOfDay().toInstant(ZoneOffset.UTC),
+                        periodEnd.plusDays(1)
+                                .atStartOfDay()
+                                .toInstant(ZoneOffset.UTC)
+                );
+
+        if (orders.isEmpty()) {
+            throw new IllegalStateException("No eligible orders found");
+        }
+
+        BigDecimal payoutAmount = BigDecimal.ZERO;
+
+        List<PayoutTransaction> payoutTransactions = new ArrayList<>();
+
+        Payout payout = Payout.builder()
+                .payoutNo(generatePayoutNo())
+                .merchant(merchant)
+                .periodStart(periodStart)
+                .periodEnd(periodEnd)
+                .status(PayoutStatus.PENDING)
+                .currency("USD")
+                .totalAmount(BigDecimal.ZERO)
+                .build();
+
+        payoutRepository.save(payout);
+
+        for (BillingOrder order : orders) {
+
+            FeeSummary summary = feeService.getFeeSummary(order);
+
+            payoutAmount = payoutAmount.add(summary.getNetAmount());
+
+            payoutTransactions.add(
+                    PayoutTransaction.builder()
+                            .payout(payout)
+                            .order(order)
+                            .grossAmount(summary.getGrossAmount())
+                            .totalFee(summary.getTotalFee())
+                            .netAmount(summary.getNetAmount())
+                            .build()
+            );
+        }
+
+        payoutTransactionRepository.saveAll(payoutTransactions);
+
+        payout.setTotalAmount(payoutAmount);
+        payoutRepository.save(payout);
+        return payout;
+    }
+
+    private String generatePayoutNo() {
+        return "PO-" + System.currentTimeMillis();
     }
 
     @Transactional
     public void publishPayoutJobs(CreatePayoutJobRequest request) {
-        List<UUID> merchants = findEligibleMerchants();
+        List<UUID> merchants = findEligibleMerchants(request.getPeriodStart(), request.getPeriodEnd());
         for(UUID merchantId : merchants){
             UUID id = UUID.randomUUID();
             PayoutJobEvent event = PayoutJobEvent.builder()
                     .eventId(id)
                     .merchantId(merchantId)
-                    .type(request.getType())
-                    .billingCycle(request.getBillingCycle())
+                    .periodStart(request.getPeriodStart())
+                    .periodEnd(request.getPeriodEnd())
                     .build();
             publisher.publish(event);
         }
@@ -44,24 +119,20 @@ public class PayoutService {
     @Transactional
     public void handlePayoutJobs(PayoutJobEvent event){
         log.info("handle payout jobs {}", event);
-        createPayout(CreatePayoutRequest.builder()
-                .merchantId(event.getMerchantId())
-                .billingCycle(event.getBillingCycle())
-                .type(event.getType())
-                .build());
+        this.triggerPayout(CreatePayoutRequest.builder()
+                        .merchantId(event.getMerchantId())
+                        .periodStart(event.getPeriodStart())
+                        .periodEnd(event.getPeriodEnd()).build());
+
     }
 
-    private List<UUID> findEligibleMerchants(){
-        List<UUID> merchants = new ArrayList<>();
-        merchants.add(UUID.randomUUID());
-        merchants.add(UUID.randomUUID());
-        merchants.add(UUID.randomUUID());
-        merchants.add(UUID.randomUUID());
-        merchants.add(UUID.randomUUID());
-        merchants.add(UUID.randomUUID());
-        merchants.add(UUID.randomUUID());
-        merchants.add(UUID.randomUUID());
-        return merchants;
+    private List<UUID> findEligibleMerchants(LocalDate periodStart, LocalDate periodEnd){
+        return orderRepository.findUniqueMerchantIdsEligibleForPayout(
+                periodStart.atStartOfDay().toInstant(ZoneOffset.UTC),
+                periodEnd.plusDays(1)
+                        .atStartOfDay()
+                        .toInstant(ZoneOffset.UTC)
+        );
     }
 
 }

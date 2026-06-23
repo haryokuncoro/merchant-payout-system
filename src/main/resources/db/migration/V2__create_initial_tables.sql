@@ -215,36 +215,6 @@ CREATE INDEX idx_payout_transactions_order
     ON payout_transactions(order_id);
 
 -- =====================================================
--- PAYOUT HISTORY
--- =====================================================
-
-CREATE TABLE payout_history (
-                                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-                                payout_id UUID NOT NULL,
-
-                                old_status VARCHAR(30),
-
-                                new_status VARCHAR(30) NOT NULL,
-
-                                remarks TEXT,
-
-                                changed_by VARCHAR(100),
-
-                                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-                                CONSTRAINT fk_payout_history_payout
-                                    FOREIGN KEY (payout_id)
-                                    REFERENCES payouts(id)
-
-
-);
-
-CREATE INDEX idx_payout_history_payout
-    ON payout_history(payout_id);
-
--- =====================================================
 -- SETTLEMENT REPORTS
 -- =====================================================
 

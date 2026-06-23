@@ -1,5 +1,6 @@
 package com.haryokuncoro.ops.service;
 
+import com.haryokuncoro.ops.dto.FeeSummary;
 import com.haryokuncoro.ops.entity.BillingOrder;
 import com.haryokuncoro.ops.entity.FeeConfig;
 import com.haryokuncoro.ops.entity.FeeTransaction;
@@ -58,5 +59,21 @@ public class FeeService {
                         SCALE,
                         RoundingMode.HALF_UP
                 );
+    }
+
+    public FeeSummary getFeeSummary(BillingOrder order) {
+        BigDecimal grossAmount = order.getAmount();
+        BigDecimal totalFee = feeTransactionRepository.sumFeeByOrderId(order.getId());
+
+        if (totalFee == null) {
+            totalFee = BigDecimal.ZERO;
+        }
+
+        BigDecimal netAmount = grossAmount.subtract(totalFee);
+        return FeeSummary.builder()
+                .grossAmount(grossAmount)
+                .totalFee(totalFee)
+                .netAmount(netAmount)
+                .build();
     }
 }

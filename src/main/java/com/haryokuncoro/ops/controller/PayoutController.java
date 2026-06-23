@@ -21,7 +21,7 @@ public class PayoutController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<String>> create(@RequestBody CreatePayoutRequest request) {
-        payoutService.createPayout(request);
+        payoutService.triggerPayout(request);
         return ResponseEntity.ok(
                 ResponseUtil.success("finished payout", null)
         );
