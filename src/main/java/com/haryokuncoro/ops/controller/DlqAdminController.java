@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/admin/dlq")
+@RequestMapping("/api/admin/dlq")
 @RequiredArgsConstructor
 public class DlqAdminController {
 

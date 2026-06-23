@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 
 @Getter @Setter
 public class CreateOrderRequest{
@@ -16,5 +15,5 @@ public class CreateOrderRequest{
     private String stripePaymentIntentId;
     private String stripeChargeId;
     private PaymentStatus paymentStatus;
-    private Instant paidAt;
+    private String paidAt;
 }

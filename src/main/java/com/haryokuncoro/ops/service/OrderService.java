@@ -2,6 +2,7 @@ package com.haryokuncoro.ops.service;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.haryokuncoro.ops.dto.CreateOrderRequest;
 import com.haryokuncoro.ops.dto.OrderCreatedEvent;
 import com.haryokuncoro.ops.entity.BillingOrder;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +35,7 @@ public class OrderService {
 
     @Transactional
     public void createOrder(OrderCreatedEvent event){
+        mapper.registerModule(new JavaTimeModule());
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         BillingOrder order = mapper.convertValue(event, BillingOrder.class);
         repository.save(order);
