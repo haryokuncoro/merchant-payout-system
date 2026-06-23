@@ -54,6 +54,7 @@ public class PayoutService {
                 () -> new NotFoundException("merchant not found")
         );
 
+
         Payout existingPayout = payoutRepository.findByMerchantIdAndPeriodStartAndPeriodEnd(merchantId, periodStart, periodEnd);
         if (existingPayout != null) {
             if(existingPayout.getStatus().equals(PayoutStatus.FAILED) || existingPayout.getStatus().equals(PayoutStatus.CANCELLED)){
@@ -115,6 +116,16 @@ public class PayoutService {
         return payout;
     }
 
+    public boolean validatePayout(UUID merchantId, LocalDate periodStart, LocalDate periodEnd){
+        Payout existingPayout = payoutRepository.findByMerchantIdAndPeriodStartAndPeriodEnd(merchantId, periodStart, periodEnd);
+        if(existingPayout == null) return true;
+
+        if (existingPayout.getStatus().equals(PayoutStatus.FAILED) || existingPayout.getStatus().equals(PayoutStatus.CANCELLED) ) {
+            return true;
+        }
+        return false;
+    }
+
     private String generateInternalPayoutNo() {
         return "PO-" + System.currentTimeMillis();
     }
@@ -162,7 +173,19 @@ public class PayoutService {
 
     public void publishPayoutJobs(CreatePayoutJobRequest request) {
         List<UUID> merchants = findEligibleMerchants(request.getPeriodStart(), request.getPeriodEnd());
+        if(merchants.isEmpty()){
+            log.warn("fail to publish payout jobs, eligible merchant not found. request {}", request);
+            throw new NotFoundException("eligible merchants not found");
+        }
         for(UUID merchantId : merchants){
+            LocalDate periodStart = request.getPeriodStart();
+            LocalDate periodEnd = request.getPeriodEnd();
+            boolean isValidPayout = validatePayout(merchantId, periodStart, periodEnd);
+            if(!isValidPayout){
+                log.warn("canceled publish payout job due to payout exists. merchantId : {} period {} {}",
+                        merchantId, periodStart, periodEnd);
+                continue;
+            }
             UUID id = UUID.randomUUID();
             PayoutJobEvent event = PayoutJobEvent.builder()
                     .eventId(id)
