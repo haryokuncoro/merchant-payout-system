@@ -1,146 +1,162 @@
-# Order Processing System
+# SpringBoot API
 
-A Spring Boot-based order processing system that includes authentication, authorization, database migration, event publishing, and API documentation.
+A Spring Boot backend exposing authentication, order, payout, webhook, and admin/DLQ management endpoints.
 
-## Overview
+## Base URL
 
-This project is built with Spring Boot 3.5.14 and Java 21. It is designed as a backend service for order processing with support for:
-
-- REST API endpoints
-- Spring Security authentication and authorization
-- PostgreSQL persistence via Spring Data JPA
-- Kafka integration for event publishing
-- Flyway database migrations
-- JWT-based token handling
-- OpenAPI / Swagger UI documentation
-
-## Key Features
-
-- Spring Boot web application
-- Secure endpoints via Spring Security
-- Data persistence with PostgreSQL
-- Kafka messaging for asynchronous event processing
-- Database migration management with Flyway
-- JWT authentication support
-- Async processing enabled with `@EnableAsync`
-- API documentation via Springdoc OpenAPI
-
-## Tech Stack
-
-- Java 21
-- Spring Boot 3.5.14
-- Spring Web
-- Spring Security
-- Spring Validation
-- Spring Data JPA
-- PostgreSQL
-- Apache Kafka (Spring Kafka)
-- Flyway
-- JSON Web Tokens (JJWT)
-- Springdoc OpenAPI
-- Gradle
-
-## Requirements
-
-- Java 21
-- Gradle 8.x (wrapper included)
-- PostgreSQL database
-- Kafka broker (if event publishing is used)
-
-## Build and Run
-
-Use the Gradle wrapper included in the repository.
-
-```bash
-./gradlew clean build
-java -jar build/libs/*.jar
+```
+http://localhost:8080
 ```
 
-## Running with Docker
+## Authentication
 
-Build the image from the project root:
+Most endpoints require a Bearer JWT token in the `Authorization` header (configured via the `bearerAuth` security scheme):
 
-```bash
-docker build -t order-processing-system .
+```
+Authorization: Bearer <your-jwt-token>
 ```
 
-Run the container:
+Obtain a token via `/auth/login` after registering with `/auth/register`.
 
-```bash
-docker run -p 8080:8080 order-processing-system
-```
+## Response Envelope
 
-## Configuration
+Most endpoints (except the Stripe webhook and seed-orders endpoints) return a common `ApiResponse` wrapper:
 
-Default configuration is loaded from `src/main/resources/application.properties`.
-
-Important settings include:
-
-- `spring.application.name=order-processing-system`
-- `server.port=8080`
-- `spring.profiles.active=local`
-
-Database, Kafka, security, and JWT settings should be configured via application properties or environment variables as needed.
-
-## Kafka Production Setup
-
-This project includes a production-ready Kafka producer and consumer setup with the following patterns:
-
-- `OrderEventPublisher` publishes `OrderCreatedEvent` messages to the `order.created` topic.
-- Topics are created with `TopicBuilder` in `KafkaConfig`, using partitioning for throughput.
-- Producer settings support strong delivery guarantees with:
-  - `spring.kafka.producer.acks=all`
-  - `spring.kafka.producer.retries=3`
-  - `spring.kafka.producer.properties.enable.idempotence=true`
-  - `spring.kafka.producer.compression-type=snappy`
-  - batch and linger tuning for throughput
-- Consumer setup includes:
-  - manual acknowledgment via `manualAckFactory`
-  - concurrency with a configured listener container factory
-  - retryable topics and dead-letter topic support through `@RetryableTopic`
-- Consumer properties include:
-  - `spring.kafka.consumer.auto-offset-reset=earliest`
-  - `spring.kafka.consumer.enable-auto-commit=false`
-  - `spring.kafka.consumer.max-poll-records=50`
-  - trusted JSON package deserialization for `com.haryokuncoro.ops.dto`
-
-For production, override the local properties with:
-
-- `spring.kafka.bootstrap-servers` pointing to your Kafka cluster
-- security settings such as SASL and SSL if required
-- topic replication factors and partition counts to match your availability requirements
-
-## API Documentation
-
-The project includes Springdoc OpenAPI support. After starting the application, access the Swagger UI at:
-
-- `http://localhost:8080/swagger-ui/index.html`
-
-## Notes
-
-- The application package is `com.haryokuncoro.ops`.
-- The project currently targets local profile execution by default.
-- Tests can be run with:
-
-```bash
-./gradlew test
-```
-
-## Create Order
 ```json
 {
-  "orderNo": "0001",
-  "merchantId": "1bbbbd6f-fa57-4ed7-866f-f3615f0dbc6c",
-  "amount": 50000,
+  "success": true,
+  "message": "string",
+  "data": {},
+  "timestamp": "2026-06-23T10:00:00Z"
+}
+```
+
+The `data` field type varies per endpoint (`string`, `void`/object, a map, or a list — see below).
+
+---
+
+## Endpoints
+
+### Auth
+
+#### `POST /auth/register`
+Register a new user.
+
+**Request body** (`RegisterRequest`):
+```json
+{
+  "email": "admin@mail.com",
+  "password": "Admin123!"
+}
+```
+| Field | Type | Required |
+|---|---|---|
+| email | string | yes |
+| password | string | yes |
+
+**Response:** `ApiResponseVoid` — `200 OK`
+
+---
+
+#### `POST /auth/login`
+Authenticate and receive a JWT.
+
+**Request body** (`LoginRequest`):
+```json
+{
+  "email": "admin@mail.com",
+  "password": "Admin123!"
+}
+```
+
+**Response:** `ApiResponseString` — `data` contains the JWT token string.
+
+---
+
+#### `GET /auth/me`
+Get the currently authenticated user's profile. Requires `Authorization` header.
+
+**Response:** `ApiResponseMap` — `data` is a key/value map of user attributes.
+
+---
+
+### Orders
+
+#### `POST /api/orders`
+Create a new order.
+
+**Request body** (`CreateOrderRequest`):
+```json
+{
+  "orderNo": "string",
+  "merchantId": "uuid",
+  "amount": 0,
   "currency": "USD",
-  "stripePaymentIntentId": "pi_test123",
+  "stripePaymentIntentId": "pi_test0001",
   "paymentStatus": "PAID",
   "paidAt": "2026-06-23T10:00:00Z"
 }
 ```
+| Field | Type | Notes |
+|---|---|---|
+| orderNo | string | |
+| merchantId | string (uuid) | |
+| amount | number | |
+| currency | string | default `USD` |
+| stripePaymentIntentId | string | default `pi_test0001` |
+| paymentStatus | string enum | `PENDING`, `PAID`, `FAILED`, `REFUNDED` (default `PAID`) |
+| paidAt | string (date-time) | e.g. `2026-06-23T10:00:00Z` |
 
-## Stripe Webhook
+**Response:** `ApiResponseString` — `200 OK`
 
+---
+
+### Payouts
+
+#### `POST /api/payouts`
+Create a payout for a merchant over a given period.
+
+**Request body** (`CreatePayoutRequest`):
+```json
+{
+  "merchantId": "uuid",
+  "periodStart": "2026-06-01",
+  "periodEnd": "2026-06-30"
+}
+```
+
+**Response:** `ApiResponseString`
+
+---
+
+#### `POST /api/payouts/jobs`
+Publish payout jobs for all merchants over a given period.
+
+**Request body** (`CreatePayoutJobRequest`):
+```json
+{
+  "periodStart": "2026-06-01",
+  "periodEnd": "2026-06-30"
+}
+```
+
+**Response:** `ApiResponseString`
+
+---
+
+### Webhooks
+
+#### `POST /api/webhooks/stripe`
+Receives Stripe webhook events.
+
+**Headers:**
+| Name | Required | Description |
+|---|---|---|
+| `Stripe-Signature` | yes | Signature used to verify the webhook payload |
+
+**Request body:** raw Stripe event payload (string/JSON).
+
+**Example payload** (`payout.paid` event):
 ```json
 {
   "id": "evt_1NqK9lJ9XYZAbCdE2G3h4I5j",
@@ -182,3 +198,86 @@ The project includes Springdoc OpenAPI support. After starting the application, 
   }
 }
 ```
+
+**Response:** `200 OK` (no body schema defined).
+
+---
+
+### Admin — Seeding
+
+#### `POST /api/admin/seed/orders`
+Seeds sample order data.
+
+**Response:** plain `string` — `200 OK`
+
+#### `POST /api/admin/seed/merchants`
+Seeds sample merchant and fee-config data.
+
+**Response:** `SeedResponse`
+```json
+{
+  "merchantCount": 0,
+  "feeConfigCount": 0
+}
+```
+
+---
+
+### Admin — Dead Letter Queue (DLQ)
+
+#### `GET /api/admin/dlq`
+List failed events, optionally filtered by topic.
+
+**Query params:**
+| Name | Type | Required |
+|---|---|---|
+| topic | string | no |
+
+**Response:** `ApiResponseListFailedEvent` — `data` is a list of `FailedEvent`:
+```json
+{
+  "id": "uuid",
+  "createdAt": "2026-06-23T10:00:00Z",
+  "updatedAt": "2026-06-23T10:00:00Z",
+  "topic": "string",
+  "eventId": "string",
+  "payload": "string",
+  "errorMessage": "string",
+  "retryCount": 0,
+  "status": "FAILED"
+}
+```
+`status` enum: `FAILED`, `REPLAYING`, `REPLAYED`, `PERMANENTLY_FAILED`
+
+#### `POST /api/admin/dlq/replay/{eventId}`
+Replays a failed event by its event ID.
+
+**Path params:**
+| Name | Type | Required |
+|---|---|---|
+| eventId | string | yes |
+
+**Response:** `ApiResponseString`
+
+---
+
+## Schemas Reference
+
+| Schema | Description |
+|---|---|
+| `RegisterRequest` | Email + password for registration |
+| `LoginRequest` | Email + password for login |
+| `CreateOrderRequest` | Order creation payload |
+| `CreatePayoutRequest` | Single merchant payout creation |
+| `CreatePayoutJobRequest` | Bulk payout job creation |
+| `SeedResponse` | Counts of seeded merchants/fee configs |
+| `FailedEvent` | A DLQ entry representing a failed event |
+| `ApiResponseVoid` / `ApiResponseString` / `ApiResponseMap` / `ApiResponseListFailedEvent` | Generic response envelopes with varying `data` types |
+
+## Security Scheme
+
+| Name | Type | Scheme | Format |
+|---|---|---|---|
+| `bearerAuth` | http | bearer | JWT |
+
+Applied globally to all endpoints unless overridden.
