@@ -160,7 +160,6 @@ public class PayoutService {
         payout.setStripeTransferId(transferId);
         payout.setStripePayoutId(payoutId);
         payout.setStatus(PayoutStatus.INITIATED);
-        payout.setPayoutDate(Instant.now());
         payoutRepository.save(payout);
     }
 

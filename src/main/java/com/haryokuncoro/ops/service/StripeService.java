@@ -1,6 +1,7 @@
 package com.haryokuncoro.ops.service;
 
 import com.haryokuncoro.ops.dto.enums.PayoutStatus;
+import com.haryokuncoro.ops.exception.NotFoundException;
 import com.haryokuncoro.ops.repository.PayoutRepository;
 import com.haryokuncoro.ops.stripe.StripeKeyResolver;
 import com.stripe.exception.SignatureVerificationException;
@@ -8,6 +9,7 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
 import com.stripe.model.Payout;
 import com.stripe.model.Transfer;
+import com.stripe.net.ApiResource;
 import com.stripe.net.RequestOptions;
 import com.stripe.net.Webhook;
 import com.stripe.param.PayoutCreateParams;
@@ -15,6 +17,7 @@ import com.stripe.param.TransferCreateParams;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -23,6 +26,9 @@ import java.time.Instant;
 @Service @Slf4j
 @RequiredArgsConstructor
 public class StripeService {
+    @Value("${stripe.skipSignatureCheck}")
+    private boolean skipSignatureCheck;
+
     private final PayoutRepository payoutRepository;
     private final StripeKeyResolver stripeKeyResolver;
 
@@ -79,15 +85,15 @@ public class StripeService {
     public void handleWebhook(String payload, String signature, String webhookSecret) {
 
         Event event;
-        try {
-            event = Webhook.constructEvent(
-                    payload,
-                    signature,
-                    webhookSecret
-            );
-
-        } catch (SignatureVerificationException ex) {
-            throw new RuntimeException("Invalid webhook signature", ex);
+        if (skipSignatureCheck) {
+            event = ApiResource.GSON.fromJson(payload, Event.class);
+        } else {
+            try {
+                event = Webhook.constructEvent(payload, signature, webhookSecret);
+            } catch (SignatureVerificationException ex) {
+                log.error("invalid webhook signature", ex);
+                throw new RuntimeException("Invalid webhook signature", ex);
+            }
         }
 
         switch (event.getType()) {
@@ -101,41 +107,30 @@ public class StripeService {
     }
 
     private void handlePayoutPaid(Event event) {
-
-        Payout stripePayout = (Payout) event
-                        .getDataObjectDeserializer()
-                        .getObject()
-                        .orElseThrow();
-
-        String stripePayoutId = stripePayout.getId();
-
-        com.haryokuncoro.ops.entity.Payout payout = payoutRepository.findByStripePayoutId(stripePayoutId)
-                        .orElseThrow();
-
-        payout.setStatus(PayoutStatus.PAID);
-
-        payout.setPayoutDate(Instant.now());
-
-        payoutRepository.save(payout);
-
+        handlePayoutStatusUpdate(event, PayoutStatus.PAID);
     }
 
     private void handlePayoutFailed(Event event) {
+        handlePayoutStatusUpdate(event, PayoutStatus.FAILED);
+    }
 
-        Payout stripePayout = (Payout) event
-                        .getDataObjectDeserializer()
-                        .getObject()
-                        .orElseThrow();
+    private void handlePayoutStatusUpdate(Event event, PayoutStatus status) {
+        Payout stripePayout;
+        try {
+            stripePayout = (Payout) event
+                    .getDataObjectDeserializer()
+                    .deserializeUnsafe();
+        } catch (Exception e) {
+            log.error("fail to deserialize payout object", e);
+            return;
+        }
 
         String stripePayoutId = stripePayout.getId();
+        com.haryokuncoro.ops.entity.Payout payout = payoutRepository.findByStripePayoutId(stripePayoutId)
+                .orElseThrow(() -> new NotFoundException("payout not found"));
 
-        com.haryokuncoro.ops.entity.Payout payout = payoutRepository
-                        .findByStripePayoutId(
-                                stripePayoutId
-                        )
-                        .orElseThrow();
-
-        payout.setStatus(PayoutStatus.FAILED);
+        payout.setStatus(status);
+        payout.setPayoutDate(Instant.now());
         payoutRepository.save(payout);
     }
 }

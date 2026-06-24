@@ -138,3 +138,47 @@ The project includes Springdoc OpenAPI support. After starting the application, 
   "paidAt": "2026-06-23T10:00:00Z"
 }
 ```
+
+## Stripe Webhook
+
+```json
+{
+  "id": "evt_1NqK9lJ9XYZAbCdE2G3h4I5j",
+  "object": "event",
+  "api_version": "2023-10-16",
+  "created": 1719234999,
+  "type": "payout.paid",
+  "livemode": false,
+  "pending_webhooks": 1,
+  "request": {
+    "id": null,
+    "idempotency_key": null
+  },
+  "data": {
+    "object": {
+      "id": "po_1NqK9lJ9XYZAbCdE2G3h4I5j",
+      "object": "payout",
+      "amount": 100000,
+      "currency": "usd",
+      "arrival_date": 1719321600,
+      "automatic": true,
+      "balance_transaction": "txn_1NqK9lJ9XYZAbCdE2G3h",
+      "created": 1719234900,
+      "description": "STRIPE PAYOUT",
+      "destination": "ba_1NqK9lJ9XYZAbCdE2G3h",
+      "failure_balance_transaction": null,
+      "failure_code": null,
+      "failure_message": null,
+      "livemode": false,
+      "method": "standard",
+      "original_payout": null,
+      "reversed_by": null,
+      "source_type": "card",
+      "statement_descriptor": null,
+      "status": "paid",
+      "type": "bank_account",
+      "metadata": {}
+    }
+  }
+}
+```
