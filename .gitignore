@@ -9,3 +9,5 @@
 *.war
 
 .DS_Store
+
+.env
