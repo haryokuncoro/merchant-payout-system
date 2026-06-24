@@ -5,21 +5,17 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.Instant;
-import java.util.UUID;
 
 @Entity
 @Table(name = "failed_events")
 @Getter
 @Setter
 @NoArgsConstructor
-public class FailedEvent {
+public class FailedEvent extends BaseEntity {
     public enum Status {
         FAILED,
         REPLAYING,
@@ -27,12 +23,9 @@ public class FailedEvent {
         PERMANENTLY_FAILED
     }
 
-    @Id
-    private UUID id;
-
     private String topic;
 
-    private UUID eventId;
+    private String eventId;
 
     @Column(columnDefinition = "TEXT")
     private String payload;
@@ -45,5 +38,4 @@ public class FailedEvent {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    private Instant createdAt;
 }

@@ -10,10 +10,10 @@ import lombok.Setter;
 public class LoginRequest {
     @NotBlank
     @Email
-    @Schema(description = "user email", defaultValue = "test@mail.com")
+    @Schema(description = "user email", defaultValue = "admin@mail.com")
     private String email;
 
     @NotBlank
-    @Schema(description = "user password", defaultValue = "String123!")
+    @Schema(description = "user password", defaultValue = "Admin123!")
     private String password;
 }

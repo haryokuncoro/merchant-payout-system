@@ -10,7 +10,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -29,24 +28,14 @@ public class OrderDlqConsumer {
         log.error("DLQ EVENT RECEIVED {}", event.getOrderNo());
 
         FailedEvent failedEvent = new FailedEvent();
-
-        failedEvent.setId(UUID.randomUUID());
-
-        failedEvent.setTopic(
-                "order.created"
-        );
-
-        failedEvent.setEventId(
-                UUID.randomUUID()
-        );
-
+        String eventId = event.getEventId();
+        failedEvent.setTopic("order.created");
+        failedEvent.setEventId(eventId);
         failedEvent.setPayload(
                 objectMapper.writeValueAsString(event)
         );
 
-        failedEvent.setErrorMessage(
-                "Payment processing failed"
-        );
+        failedEvent.setErrorMessage("Fail to sync order data");
         failedEvent.setRetryCount(0);
         failedEvent.setStatus(FailedEvent.Status.FAILED);
         failedEvent.setCreatedAt(Instant.now());
