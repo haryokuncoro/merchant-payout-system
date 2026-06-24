@@ -1,10 +1,15 @@
 package com.haryokuncoro.ops.service;
 
+import com.haryokuncoro.ops.dto.enums.PayoutStatus;
+import com.haryokuncoro.ops.repository.PayoutRepository;
 import com.haryokuncoro.ops.stripe.StripeKeyResolver;
+import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
+import com.stripe.model.Event;
 import com.stripe.model.Payout;
 import com.stripe.model.Transfer;
 import com.stripe.net.RequestOptions;
+import com.stripe.net.Webhook;
 import com.stripe.param.PayoutCreateParams;
 import com.stripe.param.TransferCreateParams;
 import jakarta.transaction.Transactional;
@@ -12,10 +17,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+
 
 @Service @Slf4j
 @RequiredArgsConstructor
 public class StripeService {
+    private final PayoutRepository payoutRepository;
     private final StripeKeyResolver stripeKeyResolver;
 
     public String transfer(Long amount, String currency, String destinationAccount) throws StripeException {
@@ -65,5 +73,69 @@ public class StripeService {
         );
 
         return payout.getId();
+    }
+
+    @Transactional
+    public void handleWebhook(String payload, String signature, String webhookSecret) {
+
+        Event event;
+        try {
+            event = Webhook.constructEvent(
+                    payload,
+                    signature,
+                    webhookSecret
+            );
+
+        } catch (SignatureVerificationException ex) {
+            throw new RuntimeException("Invalid webhook signature", ex);
+        }
+
+        switch (event.getType()) {
+            case "payout.paid" ->
+                    handlePayoutPaid(event);
+            case "payout.failed" ->
+                    handlePayoutFailed(event);
+            default ->
+                    log.info("Ignoring event {}", event.getType() );
+        }
+    }
+
+    private void handlePayoutPaid(Event event) {
+
+        Payout stripePayout = (Payout) event
+                        .getDataObjectDeserializer()
+                        .getObject()
+                        .orElseThrow();
+
+        String stripePayoutId = stripePayout.getId();
+
+        com.haryokuncoro.ops.entity.Payout payout = payoutRepository.findByStripePayoutId(stripePayoutId)
+                        .orElseThrow();
+
+        payout.setStatus(PayoutStatus.PAID);
+
+        payout.setPayoutDate(Instant.now());
+
+        payoutRepository.save(payout);
+
+    }
+
+    private void handlePayoutFailed(Event event) {
+
+        Payout stripePayout = (Payout) event
+                        .getDataObjectDeserializer()
+                        .getObject()
+                        .orElseThrow();
+
+        String stripePayoutId = stripePayout.getId();
+
+        com.haryokuncoro.ops.entity.Payout payout = payoutRepository
+                        .findByStripePayoutId(
+                                stripePayoutId
+                        )
+                        .orElseThrow();
+
+        payout.setStatus(PayoutStatus.FAILED);
+        payoutRepository.save(payout);
     }
 }
