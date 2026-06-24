@@ -18,4 +18,10 @@ public class SeedController {
     public ResponseEntity<SeedResponse> seedMerchants() {
         return ResponseEntity.ok(seedDataService.seed());
     }
+
+    @PostMapping("/orders")
+    public ResponseEntity<String> seedOrders() {
+        seedDataService.seedOrderData();
+        return ResponseEntity.ok("finished seeding order data");
+    }
 }

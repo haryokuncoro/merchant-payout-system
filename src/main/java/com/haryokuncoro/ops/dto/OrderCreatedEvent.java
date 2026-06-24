@@ -1,12 +1,13 @@
 package com.haryokuncoro.ops.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
-@Builder @Getter @Setter
+@SuperBuilder
+@Getter @Setter
 @AllArgsConstructor @NoArgsConstructor
 public class OrderCreatedEvent extends  CreateOrderRequest{
     String eventId;

@@ -37,7 +37,7 @@ CREATE INDEX idx_merchants_code
 CREATE TABLE billing_orders (
                                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-                                order_no VARCHAR(100) NOT NULL UNIQUE,
+                                order_no VARCHAR(100) NOT NULL,
 
                                 merchant_id UUID NOT NULL,
 

@@ -1,8 +1,10 @@
 package com.haryokuncoro.ops.service;
 
+import com.haryokuncoro.ops.dto.CreateOrderRequest;
 import com.haryokuncoro.ops.dto.SeedResponse;
 import com.haryokuncoro.ops.dto.enums.FeeType;
 import com.haryokuncoro.ops.dto.enums.MerchantStatus;
+import com.haryokuncoro.ops.dto.enums.PaymentStatus;
 import com.haryokuncoro.ops.entity.FeeConfig;
 import com.haryokuncoro.ops.entity.Merchant;
 import com.haryokuncoro.ops.repository.FeeConfigRepository;
@@ -22,6 +24,7 @@ public class SeedDataService {
 
     private final MerchantRepository merchantRepository;
     private final FeeConfigRepository feeConfigRepository;
+    private final OrderService orderService;
 
     @Transactional
     public SeedResponse seed() {
@@ -83,6 +86,27 @@ public class SeedDataService {
                 merchants.size(),
                 feeConfigs.size()
         );
+    }
+
+    public void seedOrderData(){
+        List<Merchant> merchants = merchantRepository.findAll();
+        for (Merchant merchant : merchants) {
+            BigDecimal amount = BigDecimal.valueOf(1000.0);
+            for(int i=1;i<=10;i++){
+                String orderNo = "0001"+i;
+                amount = amount.add(BigDecimal.valueOf(500.0));
+                String paymentIntentId = "pi_test1" + merchant.getMerchantCode() +"0002"+i;
+                orderService.publishOrder(CreateOrderRequest.builder()
+                        .merchantId(merchant.getId())
+                        .orderNo(orderNo)
+                        .amount(amount)
+                        .paidAt(Instant.now().toString())
+                        .paymentStatus(PaymentStatus.PAID)
+                        .currency("USD")
+                        .stripePaymentIntentId(paymentIntentId)
+                        .build());
+            }
+        }
     }
 
     private FeeConfig createFee(
