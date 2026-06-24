@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -76,7 +75,9 @@ public class PayoutService {
             throw new IllegalStateException("No eligible orders found");
         }
 
+        BigDecimal grossAmount = BigDecimal.ZERO;
         BigDecimal payoutAmount = BigDecimal.ZERO;
+        BigDecimal feeAmount = BigDecimal.ZERO;
         List<PayoutTransaction> payoutTransactions = new ArrayList<>();
 
         Payout payout = Payout.builder()
@@ -94,8 +95,9 @@ public class PayoutService {
         for (BillingOrder order : orders) {
 
             FeeSummary summary = feeService.getFeeSummary(order);
-
+            grossAmount = grossAmount.add(summary.getGrossAmount());
             payoutAmount = payoutAmount.add(summary.getNetAmount());
+            feeAmount = feeAmount.add(summary.getTotalFee());
 
             payoutTransactions.add(
                     PayoutTransaction.builder()
@@ -109,9 +111,11 @@ public class PayoutService {
         }
 
         payoutTransactionRepository.saveAll(payoutTransactions);
+        log.info("init payout merchant {} periodStart {} periodEnd {} grossAmount {} feeAmount {} payoutAmount {}",
+        merchantId, periodStart, periodEnd, grossAmount, feeAmount, payoutAmount);
 
         payout.setTotalAmount(payoutAmount);
-        payoutRepository.save(payout);
+        payoutRepository.saveAndFlush(payout);
         publishStripePayoutJob(payout);
         return payout;
     }
