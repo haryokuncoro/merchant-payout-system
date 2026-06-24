@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/admin/dlq")
@@ -23,18 +23,19 @@ public class DlqAdminController {
 
     private final DlqReplayService replayService;
 
-    @PostMapping("/replay/{id}")
-    public ResponseEntity<ApiResponse<String>> replay(@PathVariable UUID id) throws Exception {
-        replayService.replay(id);
+    @PostMapping("/replay/{eventId}")
+    public ResponseEntity<ApiResponse<String>> replay(@PathVariable String eventId) throws Exception {
+        replayService.replay(eventId);
         return ResponseEntity.ok(
                 ResponseUtil.success("", "Replay triggered")
         );
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<FailedEvent>>> findAll() {
+    public ResponseEntity<ApiResponse<List<FailedEvent>>> findAll(@RequestParam(required = false) String topic) {
+        List<FailedEvent> events = replayService.findAll(topic);
         return ResponseEntity.ok(
-                ResponseUtil.success("", replayService.findAll())
+                ResponseUtil.success("", events)
         );
     }
 }
