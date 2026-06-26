@@ -1,9 +1,13 @@
 package com.haryokuncoro.ops.service;
 
+import com.haryokuncoro.ops.dto.BillingOrderSpecification;
 import com.haryokuncoro.ops.dto.CreatePayoutJobRequest;
 import com.haryokuncoro.ops.dto.CreatePayoutRequest;
 import com.haryokuncoro.ops.dto.FeeSummary;
+import com.haryokuncoro.ops.dto.GetOrderResponse;
+import com.haryokuncoro.ops.dto.GetPayoutResponse;
 import com.haryokuncoro.ops.dto.PayoutJobEvent;
+import com.haryokuncoro.ops.dto.PayoutSpecification;
 import com.haryokuncoro.ops.dto.StripePayoutJobEvent;
 import com.haryokuncoro.ops.dto.enums.PayoutStatus;
 import com.haryokuncoro.ops.entity.BillingOrder;
@@ -21,6 +25,9 @@ import com.stripe.exception.StripeException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -207,6 +214,39 @@ public class PayoutService {
                         .atStartOfDay()
                         .toInstant(ZoneOffset.UTC)
         );
+    }
+
+    public Page<GetPayoutResponse> search(
+            UUID merchantId,
+            Pageable pageable) {
+
+        Specification<Payout> spec = null;
+
+        if (merchantId != null) {
+            spec = Specification.allOf(
+                    spec,
+                    PayoutSpecification.hasMerchant(merchantId)
+            );
+        }
+
+        return payoutRepository.findAll(spec, pageable)
+                .map(this::toResponse);
+    }
+
+    public GetPayoutResponse toResponse(Payout payout) {
+        return GetPayoutResponse.builder()
+                .id(payout.getId())
+                .merchantId(payout.getMerchant().getId())
+                .merchantName(payout.getMerchant().getMerchantName())
+                .periodStart(payout.getPeriodStart().toString())
+                .periodEnd(payout.getPeriodEnd().toString())
+                .grossAmount(payout.getGrossAmount())
+                .feeAmount(payout.getFeeAmount())
+                .payoutAmount(payout.getPayoutAmount())
+                .stripePayoutId(payout.getStripePayoutId())
+                .payoutDate(payout.getPayoutDate())
+                .status(payout.getStatus())
+                .build();
     }
 
 }

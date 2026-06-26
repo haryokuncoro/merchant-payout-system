@@ -37,4 +37,9 @@ public class ViewController {
         return "orders/list";
     }
 
+    @GetMapping("/payouts")
+    public String payouts() {
+        return "payouts/list";
+    }
+
 }
