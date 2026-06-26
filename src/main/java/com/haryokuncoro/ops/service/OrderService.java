@@ -3,8 +3,8 @@ package com.haryokuncoro.ops.service;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.haryokuncoro.ops.dto.BillingOrderSpecification;
 import com.haryokuncoro.ops.dto.CreateOrderRequest;
-import com.haryokuncoro.ops.dto.GetOrderRequest;
 import com.haryokuncoro.ops.dto.GetOrderResponse;
 import com.haryokuncoro.ops.dto.OrderCreatedEvent;
 import com.haryokuncoro.ops.entity.BillingOrder;
@@ -16,6 +16,9 @@ import com.haryokuncoro.ops.repository.BillingOrderRepository;
 import com.haryokuncoro.ops.repository.MerchantRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,18 +42,49 @@ public class OrderService {
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    public List<GetOrderResponse> find(GetOrderRequest request){
-        return repository.findByMerchantIdOrderByCreatedAtDesc(request.getMerchantId())
-                .stream()
-                .map(order -> GetOrderResponse.builder()
-                        .id(order.getId())
-                        .orderNo(order.getOrderNo())
-                        .amount(order.getAmount())
-                        .currency(order.getCurrency())
-                        .paymentStatus(order.getPaymentStatus())
-                        .paidAt(order.getPaidAt())
-                        .build())
-                .toList();
+    public Page<GetOrderResponse> search(
+            UUID merchantId,
+            String orderNo,
+            String stripePaymentIntentId,
+            Pageable pageable) {
+
+        Specification<BillingOrder> spec = null;
+
+        if (merchantId != null) {
+            spec = Specification.allOf(
+                    spec,
+                    BillingOrderSpecification.hasMerchant(merchantId)
+            );
+        }
+
+        if (orderNo != null && !orderNo.isBlank()) {
+            spec = Specification.allOf(
+                    spec,
+                    BillingOrderSpecification.hasOrderNo(orderNo)
+            );
+        }
+
+        if (stripePaymentIntentId != null && !stripePaymentIntentId.isBlank()) {
+            spec = Specification.allOf(
+                    spec,
+                    BillingOrderSpecification.hasStripePaymentIntentId(stripePaymentIntentId)
+            );
+        }
+
+        return repository.findAll(spec, pageable)
+                .map(this::toResponse);
+    }
+
+    public GetOrderResponse toResponse(BillingOrder order) {
+        return GetOrderResponse.builder()
+                .id(order.getId())
+                .merchantId(order.getMerchant().getId())
+                .orderNo(order.getOrderNo())
+                .amount(order.getAmount())
+                .currency(order.getCurrency())
+                .paymentStatus(order.getPaymentStatus())
+                .paidAt(order.getPaidAt())
+                .build();
     }
 
     public String publishOrder(CreateOrderRequest request) {

@@ -11,6 +11,7 @@ import java.util.UUID;
 @Getter @Setter @Builder
 public class GetOrderResponse {
     UUID id;
+    UUID merchantId;
     String orderNo;
     BigDecimal amount;
     String currency;

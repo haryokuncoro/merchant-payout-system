@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface MerchantRepository extends JpaRepository<Merchant, UUID> {
-
+    boolean existsByMerchantCode(String merchantCode);
     Optional<Merchant> findByMerchantCode(String merchantCode);
+
 }

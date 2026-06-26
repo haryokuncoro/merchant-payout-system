@@ -2,6 +2,7 @@ package com.haryokuncoro.ops.repository;
 
 import com.haryokuncoro.ops.entity.BillingOrder;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.Instant;
@@ -9,8 +10,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface BillingOrderRepository extends JpaRepository<BillingOrder, UUID> {
-    List<BillingOrder> findByMerchantIdOrderByCreatedAtDesc(UUID merchantId);
+public interface BillingOrderRepository extends JpaRepository<BillingOrder, UUID>, JpaSpecificationExecutor<BillingOrder> {
+
     Optional<BillingOrder> findByMerchantIdAndOrderNo(UUID merchantId, String orderNo);
     @Query("""
             select bo
