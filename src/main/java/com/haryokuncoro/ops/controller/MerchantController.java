@@ -5,10 +5,12 @@ import com.haryokuncoro.ops.entity.Merchant;
 import com.haryokuncoro.ops.service.MerchantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -20,12 +22,19 @@ public class MerchantController {
 
     @GetMapping
     public Page<Merchant> getAllMerchants(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String stripeAccountId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String direction) {
 
-        return merchantService.getAllMerchants(page, size, sortBy, direction);
+        Sort sort = direction.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return merchantService.getAllMerchants(name, email, stripeAccountId, pageable);
     }
 
     @GetMapping("/{id}")

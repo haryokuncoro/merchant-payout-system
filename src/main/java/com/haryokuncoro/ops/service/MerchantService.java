@@ -2,15 +2,15 @@ package com.haryokuncoro.ops.service;
 
 
 import com.haryokuncoro.ops.dto.enums.MerchantStatus;
+import com.haryokuncoro.ops.dto.spec.MerchantSpecification;
 import com.haryokuncoro.ops.entity.Merchant;
 import com.haryokuncoro.ops.exception.BadRequestException;
 import com.haryokuncoro.ops.exception.NotFoundException;
 import com.haryokuncoro.ops.repository.MerchantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
@@ -23,18 +23,34 @@ public class MerchantService {
     private final MerchantRepository merchantRepository;
 
     public Page<Merchant> getAllMerchants(
-            int page,
-            int size,
-            String sortBy,
-            String direction) {
+            String name, String email, String stripeAccountId,
+            Pageable pageable) {
 
-        Sort sort = direction.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
+        Specification<Merchant> spec = null;
 
-        Pageable pageable = PageRequest.of(page, size, sort);
+        if (name != null) {
+            spec = Specification.allOf(
+                    spec,
+                    MerchantSpecification.hasName(name)
+            );
+        }
 
-        return merchantRepository.findAll(pageable);
+        if (email != null) {
+            spec = Specification.allOf(
+                    spec,
+                    MerchantSpecification.hasEmail(email)
+            );
+        }
+
+        if (stripeAccountId != null) {
+            spec = Specification.allOf(
+                    spec,
+                    MerchantSpecification.hasAccountId(stripeAccountId)
+            );
+        }
+
+        return merchantRepository.findAll(spec, pageable);
+
     }
 
     public Merchant getMerchant(UUID id) {

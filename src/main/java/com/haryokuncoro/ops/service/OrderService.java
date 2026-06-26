@@ -3,7 +3,7 @@ package com.haryokuncoro.ops.service;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.haryokuncoro.ops.dto.BillingOrderSpecification;
+import com.haryokuncoro.ops.dto.spec.BillingOrderSpecification;
 import com.haryokuncoro.ops.dto.CreateOrderRequest;
 import com.haryokuncoro.ops.dto.GetOrderResponse;
 import com.haryokuncoro.ops.dto.OrderCreatedEvent;
@@ -21,7 +21,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service

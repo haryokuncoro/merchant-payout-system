@@ -1,4 +1,6 @@
 let modal;
+let currentPage = 0;
+const pageSize = 10;
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -9,8 +11,21 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function loadMerchants() {
+    const merchantName = document.getElementById("searchMerchantName").value;
+    const email = document.getElementById("searchMerchantEmail").value;
 
-    const response = await api("/api/merchants");
+    const params = new URLSearchParams();
+
+    if (merchantName) params.append("name", merchantName);
+    if (email) params.append("email", email);
+
+    params.append("page", currentPage);
+    params.append("size", pageSize);
+    params.append("sortBy", "createdAt");
+    params.append("direction", "desc");
+
+    const response = await api(`/api/merchants?${params.toString()}`);
+
     if(response.status == 403) {
         location.href="/login";
     }
@@ -45,6 +60,9 @@ async function loadMerchants() {
         `;
 
     });
+
+    document.getElementById("pageInfo").innerHTML =
+        `Page ${page.number + 1} of ${page.totalPages}`;
 
 }
 
@@ -122,5 +140,19 @@ async function saveMerchant(){
     modal.hide();
 
     loadMerchants();
+
+}
+
+function nextPage() {
+    currentPage++;
+    loadMerchants();
+}
+
+function previousPage() {
+
+    if (currentPage > 0) {
+        currentPage--;
+        loadMerchants();
+    }
 
 }

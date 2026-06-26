@@ -9,13 +9,36 @@
 
 <div class="container mt-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
 
-        <h2>Merchants</h2>
 
-        <button class="btn btn-primary" onclick="openCreateModal()">
-            <i class="bi bi-plus"></i>
-        </button>
+    <div class="row mb-3">
+
+
+        <div class="col-md-3">
+            <input id="searchMerchantName"
+                   class="form-control"
+                   placeholder="Name">
+        </div>
+
+        <div class="col-md-3">
+            <input id="searchMerchantEmail"
+                   class="form-control"
+                   placeholder="Email">
+        </div>
+
+        <div class="col-md-3">
+            <button class="btn btn-primary w-100"
+                    onclick="loadMerchants()">
+                Search
+            </button>
+        </div>
+
+        <div class="col-md-3">
+            <button class="btn btn-secondary w-100"
+                    onclick="openCreateModal()">
+                Create Merchant
+            </button>
+        </div>
 
     </div>
 
@@ -35,6 +58,22 @@
         <tbody id="merchantTable"></tbody>
 
     </table>
+
+    <div class="d-flex justify-content-between">
+
+        <button class="btn btn-secondary"
+                onclick="previousPage()">
+            Previous
+        </button>
+
+        <span id="pageInfo"></span>
+
+        <button class="btn btn-secondary"
+                onclick="nextPage()">
+            Next
+        </button>
+
+    </div>
 
 </div>
 
@@ -99,6 +138,7 @@
     </div>
 
 </div>
+
 
 <script src="/js/api.js"></script>
 <script src="/js/merchant.js"></script>

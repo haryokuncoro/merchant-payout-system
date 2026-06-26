@@ -1,6 +1,5 @@
-package com.haryokuncoro.ops.dto;
+package com.haryokuncoro.ops.dto.spec;
 
-import com.haryokuncoro.ops.entity.BillingOrder;
 import com.haryokuncoro.ops.entity.Payout;
 import org.springframework.data.jpa.domain.Specification;
 
