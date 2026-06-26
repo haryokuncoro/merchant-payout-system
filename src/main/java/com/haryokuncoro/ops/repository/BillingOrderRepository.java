@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface BillingOrderRepository extends JpaRepository<BillingOrder, UUID> {
-
+    List<BillingOrder> findByMerchantIdOrderByCreatedAtDesc(UUID merchantId);
     Optional<BillingOrder> findByMerchantIdAndOrderNo(UUID merchantId, String orderNo);
     @Query("""
             select bo

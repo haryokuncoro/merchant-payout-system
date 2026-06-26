@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.haryokuncoro.ops.dto.CreateOrderRequest;
+import com.haryokuncoro.ops.dto.GetOrderRequest;
+import com.haryokuncoro.ops.dto.GetOrderResponse;
 import com.haryokuncoro.ops.dto.OrderCreatedEvent;
 import com.haryokuncoro.ops.entity.BillingOrder;
 import com.haryokuncoro.ops.entity.Merchant;
@@ -16,6 +18,7 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -34,6 +37,20 @@ public class OrderService {
         this.publisher = publisher;
         mapper.registerModule(new JavaTimeModule());
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+
+    public List<GetOrderResponse> find(GetOrderRequest request){
+        return repository.findByMerchantIdOrderByCreatedAtDesc(request.getMerchantId())
+                .stream()
+                .map(order -> GetOrderResponse.builder()
+                        .id(order.getId())
+                        .orderNo(order.getOrderNo())
+                        .amount(order.getAmount())
+                        .currency(order.getCurrency())
+                        .paymentStatus(order.getPaymentStatus())
+                        .paidAt(order.getPaidAt())
+                        .build())
+                .toList();
     }
 
     public String publishOrder(CreateOrderRequest request) {
