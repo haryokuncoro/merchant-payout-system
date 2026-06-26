@@ -50,11 +50,18 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/",
+                                "/login/**",
+                                "/merchants/**",
                                 "/index.html",
                                 "/auth/**",
                                 "/api/webhooks/**",
                                 "/v3/api-docs/**",
-                                "/swagger-ui/**"
+                                "/swagger-ui/**",
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/favicon.ico",
+                                "/webjars/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

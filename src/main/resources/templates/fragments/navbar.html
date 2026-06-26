@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark"
+     th:fragment="navbar(active)">
+
+    <div class="container-fluid">
+
+        <a class="navbar-brand" href="/">
+            OPS Portal
+        </a>
+
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbar">
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbar">
+
+            <ul class="navbar-nav">
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${active=='merchant'} ? ' active'"
+                       href="/merchants">
+                        <i class="bi bi-shop"></i>
+                        Merchants
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${active=='order'} ? ' active'"
+                       href="/orders">
+                        <i class="bi bi-receipt"></i>
+                        Orders
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${active=='payout'} ? ' active'"
+                       href="/payouts">
+                        <i class="bi bi-cash-stack"></i>
+                        Payouts
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</nav>
+
+</body>
+</html>

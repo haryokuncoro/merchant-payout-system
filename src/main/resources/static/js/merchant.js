@@ -1,0 +1,126 @@
+let modal;
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    modal = new bootstrap.Modal(document.getElementById("merchantModal"));
+
+    loadMerchants();
+
+});
+
+async function loadMerchants() {
+
+    const response = await api("/api/merchants");
+    if(response.status == 403) {
+        location.href="/login";
+    }
+    const page = await response.json();
+
+
+    const tbody = document.getElementById("merchantTable");
+
+    tbody.innerHTML = "";
+
+    page.content.forEach(m => {
+
+        tbody.innerHTML += `
+        <tr>
+
+            <td>${m.merchantName}</td>
+            <td>${m.merchantCode}</td>
+            <td>${m.email}</td>
+            <td>${m.status}</td>
+            <td>${m.createdAt}</td>
+
+            <td>
+
+                <button class="btn btn-warning btn-sm"
+                    onclick="editMerchant('${m.id}')">
+                     <i class="bi bi-pencil"></i>
+                </button>
+
+            </td>
+
+        </tr>
+        `;
+
+    });
+
+}
+
+function openCreateModal(){
+
+    merchantId.value="";
+    merchantName.value="";
+    merchantCode.value="";
+    email.value="";
+    mstatus.value="ACTIVE";
+
+    modal.show();
+
+}
+
+async function editMerchant(id){
+
+    const response = await api("/api/merchants/" + id);
+
+    const m = await response.json();
+
+    merchantId.value = m.id;
+    merchantCode.value = m.merchantCode;
+    merchantName.value = m.merchantName;
+    email.value = m.email;
+    mstatus.value = m.status;
+
+    modal.show();
+
+}
+
+async function saveMerchant(){
+
+    const id = merchantId.value;
+
+    const merchant = {
+
+        merchantCode:merchantCode.value,
+        merchantName:merchantName.value,
+        email:email.value,
+        status:mstatus.value
+
+    };
+
+    if(id){
+
+        await api("/api/merchants/" + id,{
+
+            method:"PUT",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify(merchant)
+
+        });
+
+    }else{
+
+        await api("/api/merchants",{
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify(merchant)
+
+        });
+
+    }
+
+    modal.hide();
+
+    loadMerchants();
+
+}
