@@ -79,10 +79,12 @@ public class OrderService {
         return GetOrderResponse.builder()
                 .id(order.getId())
                 .merchantId(order.getMerchant().getId())
+                .merchantName(order.getMerchant().getMerchantName())
                 .orderNo(order.getOrderNo())
                 .amount(order.getAmount())
                 .currency(order.getCurrency())
                 .paymentStatus(order.getPaymentStatus())
+                .paymentIntentId(order.getStripePaymentIntentId())
                 .paidAt(order.getPaidAt())
                 .build();
     }

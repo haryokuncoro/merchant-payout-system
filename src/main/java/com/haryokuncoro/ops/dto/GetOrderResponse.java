@@ -12,9 +12,11 @@ import java.util.UUID;
 public class GetOrderResponse {
     UUID id;
     UUID merchantId;
+    String merchantName;
     String orderNo;
     BigDecimal amount;
     String currency;
     PaymentStatus paymentStatus;
+    String paymentIntentId;
     Instant paidAt;
 }

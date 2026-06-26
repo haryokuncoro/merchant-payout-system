@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: head('Orders')}"></head>
+
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar('order')}"></div>
+
+<div class="container mt-4">
+
+    <h2>Billing Orders</h2>
+
+    <div class="row mb-3">
+
+
+        <div class="col-md-3">
+            <select id="merchantId" class="form-select">
+                <option value="">All Merchants</option>
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <input id="orderNo"
+                   class="form-control"
+                   placeholder="Order No">
+        </div>
+
+        <div class="col-md-3">
+            <input id="paymentIntent"
+                   class="form-control"
+                   placeholder="Stripe Payment Intent">
+        </div>
+
+        <div class="col-md-3">
+            <button class="btn btn-primary w-100"
+                    onclick="loadOrders()">
+                Search
+            </button>
+        </div>
+
+    </div>
+
+    <table class="table table-bordered table-striped">
+
+        <thead>
+
+        <tr>
+            <th>Order No</th>
+            <th>Merchant</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Payment Intent</th>
+            <th>Paid At</th>
+        </tr>
+
+        </thead>
+
+        <tbody id="orderTable">
+
+        </tbody>
+
+    </table>
+
+    <div class="d-flex justify-content-between">
+
+        <button class="btn btn-secondary"
+                onclick="previousPage()">
+            Previous
+        </button>
+
+        <span id="pageInfo"></span>
+
+        <button class="btn btn-secondary"
+                onclick="nextPage()">
+            Next
+        </button>
+
+    </div>
+
+</div>
+<script src="/js/api.js"></script>
+
+<script src="/js/orders.js"></script>
+
+</body>
+</html>

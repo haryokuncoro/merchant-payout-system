@@ -52,6 +52,7 @@ public class SecurityConfig {
                                 "/",
                                 "/login/**",
                                 "/merchants/**",
+                                "/orders/**",
                                 "/index.html",
                                 "/auth/**",
                                 "/api/webhooks/**",
