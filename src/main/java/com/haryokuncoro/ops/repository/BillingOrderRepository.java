@@ -19,11 +19,7 @@ public interface BillingOrderRepository extends JpaRepository<BillingOrder, UUID
               and bo.paymentStatus = 'PAID'
               and bo.paidAt >= :periodStart
               and bo.paidAt < :periodEnd
-              and not exists (
-                    select pt.id
-                    from PayoutTransaction pt
-                    where pt.order.id = bo.id
-              )
+              and bo.payout.id is null
             """)
     List<BillingOrder> findEligibleForPayout(
             UUID merchantId,
@@ -37,11 +33,7 @@ public interface BillingOrderRepository extends JpaRepository<BillingOrder, UUID
         where bo.paymentStatus = 'PAID'
           and bo.paidAt >= :periodStart
           and bo.paidAt < :periodEnd
-          and not exists (
-                select pt.id
-                from PayoutTransaction pt
-                where pt.order.id = bo.id
-          )
+          and bo.payout.id is null
         """)
     List<UUID> findUniqueMerchantIdsEligibleForPayout(
             Instant periodStart,

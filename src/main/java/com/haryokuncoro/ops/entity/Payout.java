@@ -54,7 +54,13 @@ public class Payout extends BaseEntity {
     private LocalDate periodEnd;
 
     @Column(nullable = false, precision = 18, scale = 2)
-    private BigDecimal totalAmount;
+    private BigDecimal payoutAmount;
+
+    @Column(nullable = false, precision = 18, scale = 2)
+    private BigDecimal grossAmount;
+
+    @Column(nullable = false, precision = 18, scale = 2)
+    private BigDecimal feeAmount;
 
     @Column(nullable = false)
     private String currency;

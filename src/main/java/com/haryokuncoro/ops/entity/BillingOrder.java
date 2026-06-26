@@ -34,6 +34,10 @@ public class BillingOrder extends BaseEntity {
     @JoinColumn(name = "merchant_id", nullable = false)
     private Merchant merchant;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payout_id", nullable = false)
+    private Payout payout;
+
     @Column(nullable = false, precision = 18, scale = 2)
     private BigDecimal amount;
 

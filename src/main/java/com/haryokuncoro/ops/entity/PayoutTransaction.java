@@ -1,7 +1,11 @@
 package com.haryokuncoro.ops.entity;
 
+import com.haryokuncoro.ops.dto.enums.PayoutStatus;
+import com.haryokuncoro.ops.dto.enums.TransactionType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -27,16 +31,19 @@ public class PayoutTransaction extends BaseEntity {
     @JoinColumn(name = "payout_id", nullable = false)
     private Payout payout;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
-    private BillingOrder order;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TransactionType transactionType;
+
+    private String referenceId;
 
     @Column(nullable = false, precision = 18, scale = 2)
-    private BigDecimal grossAmount;
+    private BigDecimal amount;
 
-    @Column(nullable = false, precision = 18, scale = 2)
-    private BigDecimal totalFee;
+    private String metadata;
 
-    @Column(nullable = false, precision = 18, scale = 2)
-    private BigDecimal netAmount;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PayoutStatus status;
+
 }

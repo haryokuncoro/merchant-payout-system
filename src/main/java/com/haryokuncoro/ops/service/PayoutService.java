@@ -27,7 +27,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -78,7 +77,6 @@ public class PayoutService {
         BigDecimal grossAmount = BigDecimal.ZERO;
         BigDecimal payoutAmount = BigDecimal.ZERO;
         BigDecimal feeAmount = BigDecimal.ZERO;
-        List<PayoutTransaction> payoutTransactions = new ArrayList<>();
 
         Payout payout = Payout.builder()
                 .payoutNo(generateInternalPayoutNo())
@@ -87,34 +85,25 @@ public class PayoutService {
                 .periodEnd(periodEnd)
                 .status(PayoutStatus.PENDING)
                 .currency("USD")
-                .totalAmount(BigDecimal.ZERO)
+                .payoutAmount(BigDecimal.ZERO)
+                .grossAmount(BigDecimal.ZERO)
+                .feeAmount(BigDecimal.ZERO)
                 .build();
 
         payoutRepository.save(payout);
 
         for (BillingOrder order : orders) {
-
             FeeSummary summary = feeService.getFeeSummary(order);
             grossAmount = grossAmount.add(summary.getGrossAmount());
             payoutAmount = payoutAmount.add(summary.getNetAmount());
             feeAmount = feeAmount.add(summary.getTotalFee());
-
-            payoutTransactions.add(
-                    PayoutTransaction.builder()
-                            .payout(payout)
-                            .order(order)
-                            .grossAmount(summary.getGrossAmount())
-                            .totalFee(summary.getTotalFee())
-                            .netAmount(summary.getNetAmount())
-                            .build()
-            );
+            order.setPayout(payout);
         }
 
-        payoutTransactionRepository.saveAll(payoutTransactions);
-        log.info("init payout merchant {} periodStart {} periodEnd {} grossAmount {} feeAmount {} payoutAmount {}",
-        merchantId, periodStart, periodEnd, grossAmount, feeAmount, payoutAmount);
+        payout.setGrossAmount(grossAmount);
+        payout.setFeeAmount(feeAmount);
+        payout.setPayoutAmount(payoutAmount);
 
-        payout.setTotalAmount(payoutAmount);
         payoutRepository.saveAndFlush(payout);
         publishStripePayoutJob(payout);
         return payout;
@@ -152,8 +141,8 @@ public class PayoutService {
         String transferId = null;
         String payoutId = null;
         try {
-            transferId = stripeService.transfer(toCents(payout.getTotalAmount()), payout.getCurrency(), payout.getMerchant().getStripeAccountId());
-            payoutId = stripeService.payout(toCents(payout.getTotalAmount()), payout.getCurrency(), payout.getMerchant().getStripeAccountId());
+            transferId = stripeService.transfer(payout, toCents(payout.getPayoutAmount()), payout.getCurrency(), payout.getMerchant().getStripeAccountId());
+            payoutId = stripeService.payout(payout, toCents(payout.getPayoutAmount()), payout.getCurrency(), payout.getMerchant().getStripeAccountId());
         } catch (StripeException e) {
             payout.setStatus(PayoutStatus.FAILED);
             payoutRepository.save(payout);

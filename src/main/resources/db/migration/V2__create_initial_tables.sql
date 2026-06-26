@@ -31,6 +31,57 @@ CREATE INDEX idx_merchants_code
     ON merchants(merchant_code);
 
 -- =====================================================
+-- PAYOUTS
+-- =====================================================
+
+CREATE TABLE payouts (
+                         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+                         payout_no VARCHAR(100) NOT NULL UNIQUE,
+
+                         merchant_id UUID NOT NULL,
+
+                         period_start DATE NOT NULL,
+                         period_end DATE NOT NULL,
+
+                         gross_amount NUMERIC(18,2) NOT NULL,
+                         fee_amount NUMERIC(18,2) NOT NULL,
+                         payout_amount NUMERIC(18,2) NOT NULL,
+
+                         currency VARCHAR(10) NOT NULL DEFAULT 'USD',
+
+                         stripe_transfer_id VARCHAR(255),
+                         stripe_payout_id VARCHAR(255),
+
+                         status VARCHAR(30) NOT NULL,
+
+                         payout_date TIMESTAMP,
+
+                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+                         CONSTRAINT fk_payouts_merchant
+                             FOREIGN KEY (merchant_id)
+                                 REFERENCES merchants(id),
+
+                         CONSTRAINT uk_payout_period
+                             UNIQUE (
+                                     merchant_id,
+                                     period_start,
+                                     period_end
+                                 )
+
+
+);
+
+CREATE INDEX idx_payouts_merchant
+    ON payouts(merchant_id);
+
+CREATE INDEX idx_payouts_period
+    ON payouts(period_start, period_end);
+
+
+-- =====================================================
 -- BILLING ORDERS
 -- =====================================================
 
@@ -40,6 +91,7 @@ CREATE TABLE billing_orders (
                                 order_no VARCHAR(100) NOT NULL,
 
                                 merchant_id UUID NOT NULL,
+                                payout_id UUID NULL,
 
                                 amount NUMERIC(18,2) NOT NULL,
                                 currency VARCHAR(10) NOT NULL DEFAULT 'USD',
@@ -52,6 +104,9 @@ CREATE TABLE billing_orders (
                                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                 updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
+                                CONSTRAINT fk_billing_orders_payout
+                                    FOREIGN KEY (payout_id)
+                                        REFERENCES payouts(id),
                                 CONSTRAINT fk_billing_orders_merchant
                                     FOREIGN KEY (merchant_id)
                                     REFERENCES merchants(id)
@@ -128,53 +183,6 @@ CREATE INDEX idx_fee_transactions_order
 CREATE INDEX idx_fee_transactions_type
     ON fee_transactions(fee_type);
 
--- =====================================================
--- PAYOUTS
--- =====================================================
-
-CREATE TABLE payouts (
-                         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-                         payout_no VARCHAR(100) NOT NULL UNIQUE,
-
-                         merchant_id UUID NOT NULL,
-
-                         period_start DATE NOT NULL,
-                         period_end DATE NOT NULL,
-
-                         total_amount NUMERIC(18,2) NOT NULL,
-
-                         currency VARCHAR(10) NOT NULL DEFAULT 'USD',
-
-                         stripe_transfer_id VARCHAR(255),
-                         stripe_payout_id VARCHAR(255),
-
-                         status VARCHAR(30) NOT NULL,
-
-                         payout_date TIMESTAMP,
-
-                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-                         CONSTRAINT fk_payouts_merchant
-                             FOREIGN KEY (merchant_id)
-                             REFERENCES merchants(id),
-
-                         CONSTRAINT uk_payout_period
-                             UNIQUE (
-                                 merchant_id,
-                                 period_start,
-                                 period_end
-                             )
-
-
-);
-
-CREATE INDEX idx_payouts_merchant
-    ON payouts(merchant_id);
-
-CREATE INDEX idx_payouts_period
-    ON payouts(period_start, period_end);
 
 -- =====================================================
 -- PAYOUT TRANSACTIONS
@@ -186,30 +194,21 @@ CREATE TABLE payout_transactions (
 
                                      payout_id UUID NOT NULL,
 
-                                     order_id UUID NOT NULL,
-
-                                     gross_amount NUMERIC(18,2) NOT NULL,
-
-                                     total_fee NUMERIC(18,2) NOT NULL,
-
-                                     net_amount NUMERIC(18,2) NOT NULL,
+                                     transaction_type VARCHAR(255) NOT NULL,
+                                     reference_id VARCHAR(255) NULL,
+                                     amount NUMERIC(18,2) NOT NULL,
+                                     status VARCHAR(30) NOT NULL,
+                                     metadata text null,
 
                                      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
                                      CONSTRAINT fk_payout_transactions_payout
                                          FOREIGN KEY (payout_id)
-                                         REFERENCES payouts(id),
-
-                                     CONSTRAINT fk_payout_transactions_order
-                                         FOREIGN KEY (order_id)
-                                         REFERENCES billing_orders(id)
-
+                                         REFERENCES payouts(id)
 
 );
 
 CREATE INDEX idx_payout_transactions_payout
     ON payout_transactions(payout_id);
 
-CREATE INDEX idx_payout_transactions_order
-    ON payout_transactions(order_id);
