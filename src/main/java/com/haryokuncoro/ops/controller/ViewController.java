@@ -32,6 +32,11 @@ public class ViewController {
         return "merchants/list";
     }
 
+    @GetMapping("/fees")
+    public String fee() {
+        return "fees/list";
+    }
+
     @GetMapping("/orders")
     public String orders() {
         return "orders/list";

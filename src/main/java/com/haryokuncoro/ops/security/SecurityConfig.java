@@ -52,6 +52,7 @@ public class SecurityConfig {
                                 "/",
                                 "/login/**",
                                 "/merchants/**",
+                                "/fees/**",
                                 "/orders/**",
                                 "/payouts/**",
                                 "/index.html",

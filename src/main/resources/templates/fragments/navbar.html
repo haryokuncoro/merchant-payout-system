@@ -9,7 +9,7 @@
     <div class="container-fluid">
 
         <a class="navbar-brand" href="/">
-            OPS Portal
+            Merchant Payout System
         </a>
 
         <button class="navbar-toggler"
@@ -29,8 +29,15 @@
                     <a class="nav-link"
                        th:classappend="${active=='merchant'} ? ' active'"
                        href="/merchants">
-                        <i class="bi bi-shop"></i>
                         Merchants
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${active=='fee'} ? ' active'"
+                       href="/fees">
+                        Fees Config
                     </a>
                 </li>
 
@@ -38,7 +45,6 @@
                     <a class="nav-link"
                        th:classappend="${active=='order'} ? ' active'"
                        href="/orders">
-                        <i class="bi bi-receipt"></i>
                         Orders
                     </a>
                 </li>
@@ -47,7 +53,6 @@
                     <a class="nav-link"
                        th:classappend="${active=='payout'} ? ' active'"
                        href="/payouts">
-                        <i class="bi bi-cash-stack"></i>
                         Payouts
                     </a>
                 </li>

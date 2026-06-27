@@ -80,7 +80,7 @@ function renderTable(page) {
     });
 
     document.getElementById("pageInfo").innerHTML =
-        `Page ${page.number + 1} of ${page.totalPages}`;
+        `Page ${page.data.number + 1} of ${page.data.totalPages}`;
 
 }
 
