@@ -33,7 +33,7 @@ async function loadMerchants() {
 
     tbody.innerHTML = "";
 
-    page.content.forEach(m => {
+    page.data.content.forEach(m => {
 
         tbody.innerHTML += `
         <tr>
@@ -59,7 +59,7 @@ async function loadMerchants() {
     });
 
     document.getElementById("pageInfo").innerHTML =
-        `Page ${page.number + 1} of ${page.totalPages}`;
+        `Page ${page.data.number + 1} of ${page.data.totalPages}`;
 
 }
 
@@ -80,12 +80,13 @@ async function editMerchant(id){
     const response = await api("/api/merchants/" + id);
 
     const m = await response.json();
+    const data = m.data
 
-    merchantId.value = m.id;
-    merchantCode.value = m.merchantCode;
-    merchantName.value = m.merchantName;
-    email.value = m.email;
-    mstatus.value = m.status;
+    merchantId.value = data.id;
+    merchantCode.value = data.merchantCode;
+    merchantName.value = data.merchantName;
+    email.value = data.email;
+    mstatus.value = data.status;
 
     modal.show();
 

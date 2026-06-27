@@ -41,7 +41,7 @@ async function loadMerchants() {
         select.innerHTML = `<option value="">All Merchants</option>`;
 
 
-        merchants.content.forEach(m => {
+        merchants.data.content.forEach(m => {
             select.innerHTML += `
                 <option value="${m.id}">
                     ${m.merchantName}
@@ -61,7 +61,7 @@ function renderTable(page) {
 
     tbody.innerHTML = "";
 
-    page.content.forEach(order => {
+    page.data.content.forEach(order => {
 
         tbody.innerHTML += `
             <tr>
@@ -76,7 +76,7 @@ function renderTable(page) {
     });
 
     document.getElementById("pageInfo").innerHTML =
-        `Page ${page.number + 1} of ${page.totalPages}`;
+        `Page ${page.data.number + 1} of ${page.data.totalPages}`;
 }
 
 function nextPage() {

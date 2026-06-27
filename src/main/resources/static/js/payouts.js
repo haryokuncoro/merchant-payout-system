@@ -25,7 +25,7 @@ async function loadMerchants() {
 async function loadMerchantOption(select, page){
     select.innerHTML = '<option value="">All Merchants</option>';
 
-    page.content.forEach(m => {
+    page.data.content.forEach(m => {
 
         select.innerHTML += `
             <option value="${m.id}">
@@ -62,7 +62,7 @@ function renderTable(page) {
 
     tbody.innerHTML = "";
 
-    page.content.forEach(payout => {
+    page.data.content.forEach(payout => {
 
         tbody.innerHTML += `
             <tr>
