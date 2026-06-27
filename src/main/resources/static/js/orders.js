@@ -20,9 +20,6 @@ async function loadOrders() {
 
     const response = await api(`/api/orders?${params.toString()}`);
 
-    if(response.status == 403) {
-        location.href="/login";
-    }
     const data = await response.json();
 
     renderTable(data);

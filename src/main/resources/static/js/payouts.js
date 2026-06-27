@@ -1,16 +1,28 @@
 let currentPage = 0;
 const pageSize = 10;
+let modal;
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    modal = new bootstrap.Modal(document.getElementById("payoutModal"));
+
+
+});
 
 async function loadMerchants() {
 
     const response = await api("/api/merchants");
-    if(response.status == 403) {
-        location.href="/login";
-    }
     const page = await response.json();
 
     const select = document.getElementById("merchantId");
+    const select2 = document.getElementById("merchantIdModal");
 
+    loadMerchantOption(select, page)
+    loadMerchantOption(select2, page)
+
+}
+
+async function loadMerchantOption(select, page){
     select.innerHTML = '<option value="">All Merchants</option>';
 
     page.content.forEach(m => {
@@ -21,7 +33,6 @@ async function loadMerchants() {
             </option>
         `;
     });
-
 }
 
 async function loadPayouts() {
@@ -71,6 +82,38 @@ function renderTable(page) {
     document.getElementById("pageInfo").innerHTML =
         `Page ${page.number + 1} of ${page.totalPages}`;
 
+}
+
+function openPayoutModal(){
+
+    modal.show();
+
+}
+
+async function triggerPayout(){
+    const payout = {
+
+        merchantId:merchantIdModal.value,
+        periodStart:periodStart.value,
+        periodEnd:periodEnd.value
+
+    };
+
+
+    await api("/api/payouts",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify(payout)
+
+    });
+
+    modal.hide()
+    await loadPayouts()
 }
 
 function badge(status) {

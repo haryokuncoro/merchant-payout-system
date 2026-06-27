@@ -26,9 +26,6 @@ async function loadMerchants() {
 
     const response = await api(`/api/merchants?${params.toString()}`);
 
-    if(response.status == 403) {
-        location.href="/login";
-    }
     const page = await response.json();
 
 

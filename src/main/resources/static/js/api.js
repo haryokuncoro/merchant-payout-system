@@ -11,7 +11,7 @@ async function api(url, options = {}) {
 
     const response = await fetch(url, options);
 
-    if (response.status === 401) {
+    if (response.status === 401 || response.status == 403) {
 
         sessionStorage.clear();
 
