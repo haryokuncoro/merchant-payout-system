@@ -6,17 +6,17 @@ import java.time.LocalDateTime;
 
 public class ResponseUtil {
 
-    public static <T> ApiResponse<T> success(String message, T data) {
+    public static <T> ApiResponse<T> success(T data) {
         return ApiResponse.<T>builder()
                 .success(true)
-                .message(message)
                 .data(data)
                 .timestamp(LocalDateTime.now())
                 .build();
     }
 
+
     public static ApiResponse<Void> success(String message) {
-        return success(message, null);
+        return success(message);
     }
 
     public static ApiResponse<Void> error(String message) {

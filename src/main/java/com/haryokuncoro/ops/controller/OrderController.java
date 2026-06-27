@@ -28,15 +28,13 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<String>> create(@RequestBody CreateOrderRequest request) {
+    public ApiResponse create(@RequestBody CreateOrderRequest request) {
         String orderNumber = orderService.publishOrder(request);
-        return ResponseEntity.ok(
-                ResponseUtil.success("", orderNumber)
-        );
+        return ResponseUtil.success(orderNumber);
     }
 
     @GetMapping
-    public Page<GetOrderResponse> getBillingOrders(
+    public ApiResponse getBillingOrders(
             @RequestParam(required = false) UUID merchantId,
             @RequestParam(required = false) String orderNo,
             @RequestParam(required = false) String stripePaymentIntentId,
@@ -49,10 +47,11 @@ public class OrderController {
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        return orderService.search(
+        Page<GetOrderResponse> resp = orderService.search(
                 merchantId,
                 orderNo,
                 stripePaymentIntentId,
                 pageable);
+        return ResponseUtil.success(resp);
     }
 }

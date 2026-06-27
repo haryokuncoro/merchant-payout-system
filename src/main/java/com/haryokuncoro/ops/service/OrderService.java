@@ -14,17 +14,17 @@ import com.haryokuncoro.ops.exception.BadRequestException;
 import com.haryokuncoro.ops.exception.NotFoundException;
 import com.haryokuncoro.ops.repository.BillingOrderRepository;
 import com.haryokuncoro.ops.repository.MerchantRepository;
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
 @Service
-@Transactional @Slf4j
+@Slf4j @Transactional(readOnly = true)
 public class OrderService {
     private static final ObjectMapper mapper = new ObjectMapper();
     private final BillingOrderRepository repository;

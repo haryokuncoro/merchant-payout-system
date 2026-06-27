@@ -88,6 +88,7 @@ public class SeedDataService {
         );
     }
 
+    @Transactional
     public void seedOrderData(){
         List<Merchant> merchants = merchantRepository.findAll();
         for (Merchant merchant : merchants) {

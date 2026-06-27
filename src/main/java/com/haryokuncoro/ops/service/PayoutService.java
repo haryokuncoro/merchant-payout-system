@@ -19,13 +19,13 @@ import com.haryokuncoro.ops.repository.MerchantRepository;
 import com.haryokuncoro.ops.repository.PayoutRepository;
 import com.haryokuncoro.ops.repository.PayoutTransactionRepository;
 import com.stripe.exception.StripeException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -36,6 +36,7 @@ import java.util.UUID;
 
 @Service @Slf4j
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PayoutService {
     private final StripeService stripeService;
     private final FeeService feeService;

@@ -33,6 +33,7 @@ import static com.haryokuncoro.ops.dto.enums.PayoutStatus.TRANSFERRED;
 
 @Service @Slf4j
 @RequiredArgsConstructor
+@Transactional
 public class StripeService {
     @Value("${stripe.skipSignatureCheck}")
     private boolean skipSignatureCheck;

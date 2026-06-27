@@ -7,16 +7,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
+
 
 @Service @Slf4j
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AuthService {
 
     private final UserRepository userRepo;
     private final PasswordEncoder encoder;
     private final JwtService jwtService;
 
+    @Transactional
     public void register(String email, String password) {
         userRepo.findByEmail(email).ifPresent(u -> {
             throw new BadRequestException("Invalid request");

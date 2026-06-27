@@ -6,15 +6,17 @@ import com.haryokuncoro.ops.entity.FeeConfig;
 import com.haryokuncoro.ops.entity.FeeTransaction;
 import com.haryokuncoro.ops.repository.FeeConfigRepository;
 import com.haryokuncoro.ops.repository.FeeTransactionRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
-@Service @RequiredArgsConstructor
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class FeeService {
     private static final int SCALE = 2;
 

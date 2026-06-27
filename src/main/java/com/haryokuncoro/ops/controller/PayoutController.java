@@ -11,7 +11,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,23 +28,19 @@ public class PayoutController {
     private final PayoutService payoutService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<String>> create(@RequestBody CreatePayoutRequest request) {
+    public ApiResponse create(@RequestBody CreatePayoutRequest request) {
         payoutService.triggerPayout(request);
-        return ResponseEntity.ok(
-                ResponseUtil.success("finished payout", null)
-        );
+        return ResponseUtil.success("finished payout");
     }
 
     @PostMapping("/jobs")
-    public ResponseEntity<ApiResponse<String>> publishPayoutJobs(@RequestBody CreatePayoutJobRequest request) {
+    public ApiResponse publishPayoutJobs(@RequestBody CreatePayoutJobRequest request) {
         payoutService.publishPayoutJobs(request);
-        return ResponseEntity.ok(
-                ResponseUtil.success("finished publish payout jobs", null)
-        );
+        return ResponseUtil.success("finished publish payout jobs");
     }
 
     @GetMapping
-    public Page<GetPayoutResponse> getPayouts(
+    public ApiResponse getPayouts(
             @RequestParam(required = false) UUID merchantId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -56,8 +51,9 @@ public class PayoutController {
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        return payoutService.search(
+        Page<GetPayoutResponse> resp = payoutService.search(
                 merchantId,
                 pageable);
+        return ResponseUtil.success(resp);
     }
 }
