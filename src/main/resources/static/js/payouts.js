@@ -47,9 +47,9 @@ function renderTable(page) {
             <tr>
                 <td>${payout.merchantName}</td>
                 <td>${payout.periodStart} - ${payout.periodEnd}</td>
-                <td>${formatCurrency(payout.grossAmount)}</td>
-                <td>${formatCurrency(payout.feeAmount)}</td>
-                <td>${formatCurrency(payout.payoutAmount)}</td>
+                <td>${formatCurrency(payout.grossAmount, payout.currency)}</td>
+                <td>${formatCurrency(payout.feeAmount, payout.currency)}</td>
+                <td>${formatCurrency(payout.payoutAmount, payout.currency)}</td>
                 <td>${payout.stripePayoutId}</td>
                 <td>${badge(payout.status)}</td>
                 <td>${formatDate(payout.payoutDate)}</td>
@@ -110,11 +110,11 @@ function badge(status) {
 
 }
 
-function formatCurrency(amount) {
+function formatCurrency(amount, currency) {
 
     return new Intl.NumberFormat("id-ID", {
         style: "currency",
-        currency: "IDR"
+        currency: currency
     }).format(amount);
 
 }

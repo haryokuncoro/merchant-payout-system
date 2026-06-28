@@ -16,6 +16,7 @@ public class GetPayoutResponse {
     private String merchantName;
     private String periodStart;
     private String periodEnd;
+    private String currency;
     private BigDecimal grossAmount;
     private BigDecimal feeAmount;
     private BigDecimal payoutAmount;

@@ -94,6 +94,7 @@ public class PayoutService {
                 .grossAmount(BigDecimal.ZERO)
                 .feeAmount(BigDecimal.ZERO)
                 .build();
+        payoutRepository.saveAndFlush(payout);
 
         for (BillingOrder order : orders) {
             FeeSummary summary = feeService.getFeeSummary(order);
@@ -244,6 +245,7 @@ public class PayoutService {
                 .periodStart(payout.getPeriodStart().toString())
                 .periodEnd(payout.getPeriodEnd().toString())
                 .grossAmount(payout.getGrossAmount())
+                .currency(payout.getCurrency())
                 .feeAmount(payout.getFeeAmount())
                 .payoutAmount(payout.getPayoutAmount())
                 .stripePayoutId(payout.getStripePayoutId())
