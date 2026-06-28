@@ -9,31 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
-async function loadMerchants() {
 
-    const response = await api("/api/merchants");
-    const page = await response.json();
-
-    const select = document.getElementById("merchantId");
-    const select2 = document.getElementById("merchantIdModal");
-
-    loadMerchantOption(select, page)
-    loadMerchantOption(select2, page)
-
-}
-
-async function loadMerchantOption(select, page){
-    select.innerHTML = '<option value="">All Merchants</option>';
-
-    page.data.content.forEach(m => {
-
-        select.innerHTML += `
-            <option value="${m.id}">
-                ${m.merchantName}
-            </option>
-        `;
-    });
-}
 
 async function loadPayouts() {
 
@@ -164,7 +140,8 @@ function previousPage() {
 
 window.onload = async () => {
 
-    await loadMerchants();
+    await loadMerchants("merchantId");
+    await loadMerchants("merchantIdModal");
     await loadPayouts();
 
 };

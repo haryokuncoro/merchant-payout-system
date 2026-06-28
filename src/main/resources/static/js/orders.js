@@ -25,35 +25,6 @@ async function loadOrders() {
     renderTable(data);
 }
 
-async function loadMerchants() {
-
-    try {
-        const response = await api("/api/merchants");
-
-        if (!response.ok) {
-            throw new Error("Failed to load merchants");
-        }
-
-        const merchants = await response.json();
-
-        const select = document.getElementById("merchantId");
-
-        select.innerHTML = `<option value="">All Merchants</option>`;
-
-
-        merchants.data.content.forEach(m => {
-            select.innerHTML += `
-                <option value="${m.id}">
-                    ${m.merchantName}
-                </option>
-            `;
-        });
-
-    } catch (e) {
-        console.error(e);
-    }
-
-}
 
 function renderTable(page) {
 
@@ -94,6 +65,6 @@ function previousPage() {
 }
 
 window.onload = async () => {
-    await loadMerchants();
+    await loadMerchants("merchantId");
     await loadOrders();
 };
