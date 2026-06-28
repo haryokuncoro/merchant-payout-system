@@ -94,10 +94,10 @@ public class SeedDataService {
         List<Merchant> merchants = merchantRepository.findAll();
         for (Merchant merchant : merchants) {
             Random random = new Random();
-            BigDecimal amount = BigDecimal.valueOf(20.0);
+            BigDecimal amount = BigDecimal.valueOf(10.0);
             for(int i=1;i<=50;i++){
                 String orderNo = "0001"+i;
-                Long number = random.nextLong(10, 30);
+                Long number = random.nextLong(5, 20);
                 amount = amount.add(BigDecimal.valueOf(number));
                 String paymentIntentId = "pi_test1" + merchant.getMerchantCode() +"0002"+i;
                 orderService.publishOrder(CreateOrderRequest.builder()
