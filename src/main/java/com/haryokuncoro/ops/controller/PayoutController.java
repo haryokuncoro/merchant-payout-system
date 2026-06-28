@@ -42,6 +42,7 @@ public class PayoutController {
     @GetMapping
     public ApiResponse getPayouts(
             @RequestParam(required = false) UUID merchantId,
+            @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -53,6 +54,7 @@ public class PayoutController {
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<GetPayoutResponse> resp = payoutService.search(
                 merchantId,
+                status,
                 pageable);
         return ResponseUtil.success(resp);
     }

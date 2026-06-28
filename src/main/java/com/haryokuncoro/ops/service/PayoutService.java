@@ -95,8 +95,6 @@ public class PayoutService {
                 .feeAmount(BigDecimal.ZERO)
                 .build();
 
-        payoutRepository.save(payout);
-
         for (BillingOrder order : orders) {
             FeeSummary summary = feeService.getFeeSummary(order);
             grossAmount = grossAmount.add(summary.getGrossAmount());
@@ -216,6 +214,7 @@ public class PayoutService {
 
     public Page<GetPayoutResponse> search(
             UUID merchantId,
+            String status,
             Pageable pageable) {
 
         Specification<Payout> spec = null;
@@ -224,6 +223,12 @@ public class PayoutService {
             spec = Specification.allOf(
                     spec,
                     PayoutSpecification.hasMerchant(merchantId)
+            );
+        }
+        if (status != null) {
+            spec = Specification.allOf(
+                    spec,
+                    PayoutSpecification.hasStatus(PayoutStatus.valueOf(status))
             );
         }
 

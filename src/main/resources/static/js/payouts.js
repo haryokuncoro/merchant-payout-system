@@ -14,11 +14,14 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadPayouts() {
 
     const merchantId = document.getElementById("merchantId").value;
+    const payoutStatus = document.getElementById("payoutStatus").value;
 
     const params = new URLSearchParams();
 
     if (merchantId)
         params.append("merchantId", merchantId);
+    if (payoutStatus)
+        params.append("status", payoutStatus);
 
     params.append("page", currentPage);
     params.append("size", pageSize);

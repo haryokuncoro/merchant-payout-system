@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -35,13 +36,13 @@ public class SeedDataService {
 
         List<Merchant> merchants = new ArrayList<>();
 
-        for (int i = 1; i <= 10; i++) {
+        for (int i = 1; i <= 5000; i++) {
 
             Merchant merchant = Merchant.builder()
                     .merchantCode("MRC-%03d".formatted(i))
                     .merchantName("Merchant %d".formatted(i))
                     .email("merchant%d@test.com".formatted(i))
-                    .phone("081234567" + i)
+                    .phone("08123456" + i)
                     .stripeAccountId("acct_test000"+i)
                     .status(MerchantStatus.ACTIVE)
                     .build();
@@ -92,10 +93,12 @@ public class SeedDataService {
     public void seedOrderData(){
         List<Merchant> merchants = merchantRepository.findAll();
         for (Merchant merchant : merchants) {
-            BigDecimal amount = BigDecimal.valueOf(1000.0);
-            for(int i=1;i<=10;i++){
+            Random random = new Random();
+            BigDecimal amount = BigDecimal.valueOf(500.0);
+            for(int i=1;i<=50;i++){
                 String orderNo = "0001"+i;
-                amount = amount.add(BigDecimal.valueOf(500.0));
+                Long number = random.nextLong(400, 700);
+                amount = amount.add(BigDecimal.valueOf(number));
                 String paymentIntentId = "pi_test1" + merchant.getMerchantCode() +"0002"+i;
                 orderService.publishOrder(CreateOrderRequest.builder()
                         .merchantId(merchant.getId())
