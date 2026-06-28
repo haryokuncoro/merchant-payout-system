@@ -1,7 +1,5 @@
 let currentPage = 0;
 
-loadData();
-
 document.getElementById("searchBtn").onclick = loadData;
 document.getElementById("saveBtn").onclick = save;
 document.getElementById("clearBtn").onclick = clearForm;
@@ -36,17 +34,10 @@ async function loadData() {
             <td>${item.effectiveTo}</td>
             <td>${item.active}</td>
             <td>
-
                 <button class="btn btn-warning btn-sm"
                         onclick="edit('${item.id}')">
                     Edit
                 </button>
-
-                <button class="btn btn-danger btn-sm"
-                        onclick="remove('${item.id}')">
-                    Delete
-                </button>
-
             </td>
         </tr>`;
     });
@@ -74,33 +65,39 @@ async function edit(id) {
 async function save() {
 
     const id = document.getElementById("feeId").value;
-
+    const effectiveFromVal = new Date(document.getElementById("effectiveFrom").value).toISOString();
+    let effectiveToVal = document.getElementById("effectiveTo").value || null;
+    if (effectiveToVal) {
+        effectiveToVal = new Date(effectiveToVal).toISOString();
+    }else{}
     const body = {
         merchantId: document.getElementById("merchantId").value,
         feeType: document.getElementById("feeType").value,
         feeValue: Number(document.getElementById("feeValue").value),
-        effectiveFrom: Number(document.getElementById("effectiveFrom").value),
-        effectiveTo: Number(document.getElementById("effectiveTo").value),
+        effectiveFrom: effectiveFromVal,
+        effectiveTo: effectiveToVal,
         active: document.getElementById("active").value === "true"
     };
 
     if (id) {
-        await api(`/api/fee-configs/${id}`, body);
+        await api(`/api/fee-configs/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body)
+        });
     } else {
-        await api("/api/fee-configs", body);
+        await api(`/api/fee-configs`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body)
+        });
     }
 
     clearForm();
-    loadData();
-}
-
-async function remove(id) {
-
-    if (!confirm("Delete this fee config?"))
-        return;
-
-    await api(`/api/fee-configs/${id}`);
-
     loadData();
 }
 
@@ -108,9 +105,15 @@ function clearForm() {
 
     document.getElementById("feeId").value = "";
     document.getElementById("merchantId").value = "";
+    document.getElementById("merchantName").value = "";
     document.getElementById("feeType").value = "";
     document.getElementById("feeValue").value = "";
     document.getElementById("effectiveFrom").value = "";
     document.getElementById("effectiveTo").value = "";
     document.getElementById("active").value = "true";
 }
+
+window.onload = async () => {
+    await loadMerchants("searchMerchantId");
+    await loadData();
+};

@@ -79,8 +79,6 @@ public class FeeConfigService {
         FeeConfig feeConfig = repository.findById(id).orElseThrow(
                 () -> new NotFoundException("config not found")
         );
-        feeConfig.setActive(false);
-        repository.save(feeConfig);
         return toResponse(feeConfig);
     }
 
@@ -96,7 +94,7 @@ public class FeeConfigService {
                     FeeConfigSpecification.hasMerchant(merchantId)
             );
         }
-        if (merchantId != null) {
+        if (active != null) {
             spec = Specification.allOf(
                     spec,
                     FeeConfigSpecification.hasActive(active)

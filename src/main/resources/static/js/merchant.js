@@ -48,7 +48,7 @@ async function loadMerchants() {
 
                 <button class="btn btn-warning btn-sm"
                     onclick="editMerchant('${m.id}')">
-                     <i class="bi bi-pencil"></i>
+                     Edit
                 </button>
 
             </td>
