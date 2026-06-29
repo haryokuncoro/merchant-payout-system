@@ -24,8 +24,9 @@ public class AuthController {
 
     @PostMapping("/register")
     public ApiResponse register(@RequestBody RegisterRequest req, HttpServletRequest servletRequest) {
-        authService.register(req.getEmail(), req.getPassword());
-        return ResponseUtil.success("User registered successfully");
+        String token = authService.register(req.getEmail(), req.getPassword());
+        Map<String, Object> resp = Map.of("token", token);
+        return ResponseUtil.success(resp);
     }
 
     @PostMapping("/login")

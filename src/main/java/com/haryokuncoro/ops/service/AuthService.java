@@ -20,7 +20,7 @@ public class AuthService {
     private final JwtService jwtService;
 
     @Transactional
-    public void register(String email, String password) {
+    public String register(String email, String password) {
         userRepo.findByEmail(email).ifPresent(u -> {
             throw new BadRequestException("Invalid request");
         });
@@ -34,6 +34,7 @@ public class AuthService {
         user.setPassword(encoder.encode(password));
         user.setEnabled(true);
         userRepo.save(user);
+        return jwtService.generate(user.getId());
     }
 
     public String login(String email, String password) {
