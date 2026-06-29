@@ -15,7 +15,6 @@ public class StripeKeyResolver {
         return switch (currency) {
             case "SGD" -> properties.apiKeySG();
             case "USD" -> properties.apiKeyUS();
-            case "IDR" -> properties.apiKeyID();
             default -> throw new IllegalStateException("Unexpected value: " + currency);
         };
     }

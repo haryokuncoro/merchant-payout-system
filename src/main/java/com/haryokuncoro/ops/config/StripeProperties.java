@@ -6,7 +6,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record StripeProperties(
         String apiKeySG,
         String apiKeyUS,
-        String apiKeyID,
         boolean mockEnabled,
         String mockBaseUrl
 ) {}
