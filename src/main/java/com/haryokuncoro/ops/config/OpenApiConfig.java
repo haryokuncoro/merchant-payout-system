@@ -26,7 +26,7 @@ public class OpenApiConfig {
                 )
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
                 .info(new Info()
-                        .title("SpringBoot API")
+                        .title("Merchant Payout System API")
                         .version("1.0"));
     }
 }
