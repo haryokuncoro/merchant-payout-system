@@ -1,88 +1,119 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en" data-bs-theme="light">
 
 <head>
-    <title>Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login · Payout Console</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 
-<body class="bg-light">
+<body class="bg-light d-flex align-items-center justify-content-center min-vh-100">
 
 <div class="container">
+    <div class="row justify-content-center">
+        <div class="col-11 col-sm-8 col-md-6 col-lg-4">
 
-    <div class="row justify-content-center mt-5">
-
-        <div class="col-md-4">
-
-            <div class="card">
-
-                <div class="card-header">
-                    <h4>Payout System Login</h4>
+            <div class="d-flex align-items-center gap-2 mb-4">
+                <div class="bg-primary rounded-3 d-flex align-items-center justify-content-center" style="width:38px;height:38px;">
+                    <i class="bi bi-shield-lock-fill text-white fs-5"></i>
                 </div>
+                <div>
+                    <div class="fw-semibold lh-sm text-dark">Payout Console</div>
+                    <div class="text-secondary text-uppercase" style="font-size:.7rem; letter-spacing:.05em;">Internal Operations</div>
+                </div>
+            </div>
 
-                <div class="card-body">
+            <div class="card border-0 shadow-sm">
+                <div class="bg-primary" style="height:3px;"></div>
+                <div class="card-body p-4">
 
-                    <form id="loginForm">
+                    <h4 class="card-title fw-semibold mb-1">Sign in</h4>
+                    <p class="text-secondary small mb-4">Authenticate to access merchant payouts and settlement tools.</p>
+
+                    <div id="errorBanner" class="alert alert-danger d-none py-2 small mb-3" role="alert"></div>
+
+                    <form id="loginForm" novalidate>
 
                         <div class="mb-3">
-                            <label>Email</label>
+                            <label for="username" class="form-label small text-secondary">Email</label>
                             <input
                                     id="username"
+                                    type="email"
                                     class="form-control"
+                                    placeholder="you@company.com"
+                                    autocomplete="username"
                                     required>
                         </div>
 
-                        <div class="mb-3">
-                            <label>Password</label>
+                        <div class="mb-4">
+                            <label for="password" class="form-label small text-secondary">Password</label>
                             <input
                                     id="password"
                                     type="password"
                                     class="form-control"
+                                    placeholder="••••••••"
+                                    autocomplete="current-password"
                                     required>
                         </div>
 
-                        <button class="btn btn-primary w-100">
-                            Login
+                        <button class="btn btn-primary w-100 fw-semibold d-flex align-items-center justify-content-center gap-2" type="submit">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            <span class="btn-label">Sign in</span>
                         </button>
 
                     </form>
 
                 </div>
+            </div>
 
+            <div class="text-center text-secondary mt-3" style="font-size:.7rem; letter-spacing:.05em;">
+                SECURED &middot; PAYOUTS-SVC &middot; v2
             </div>
 
         </div>
-
     </div>
-
 </div>
 
 <script>
 
-    document.getElementById("loginForm")
-        .addEventListener("submit", async function(e){
+    const form = document.getElementById("loginForm");
+    const button = form.querySelector("button[type=submit]");
+    const spinner = button.querySelector(".spinner-border");
+    const btnLabel = button.querySelector(".btn-label");
+    const errorBanner = document.getElementById("errorBanner");
 
-            e.preventDefault();
+    form.addEventListener("submit", async function (e) {
 
-            const response = await fetch("/api/auth/login",{
+        e.preventDefault();
 
-                method:"POST",
+        errorBanner.classList.add("d-none");
+        button.disabled = true;
+        spinner.classList.remove("d-none");
+        btnLabel.textContent = "Signing in...";
 
-                headers:{
-                    "Content-Type":"application/json"
+        try {
+
+            const response = await fetch("/api/auth/login", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
                 },
 
-                body:JSON.stringify({
-                    email:username.value,
-                    password:password.value
+                body: JSON.stringify({
+                    email: username.value,
+                    password: password.value
                 })
 
             });
 
-            if(!response.ok){
-                alert("Invalid username or password");
+            if (!response.ok) {
+                errorBanner.textContent = "Incorrect email or password. Try again.";
+                errorBanner.classList.remove("d-none");
                 return;
             }
 
@@ -90,9 +121,22 @@
 
             sessionStorage.setItem("token", result.data.token);
 
-            location.href="/merchants";
+            location.href = "/merchants";
 
-        });
+        } catch (err) {
+
+            errorBanner.textContent = "Network error. Please try again.";
+            errorBanner.classList.remove("d-none");
+
+        } finally {
+
+            button.disabled = false;
+            spinner.classList.add("d-none");
+            btnLabel.textContent = "Sign in";
+
+        }
+
+    });
 
 </script>
 

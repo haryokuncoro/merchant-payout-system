@@ -23,6 +23,13 @@ async function api(url, options = {}) {
     return response;
 }
 
+function logout(){
+    sessionStorage.clear();
+
+    window.location = "/login";
+
+    return;
+}
 
 async function loadMerchants(elementId) {
 
