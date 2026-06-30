@@ -7,124 +7,132 @@
 <div th:replace="~{fragments/navbar :: navbar('fee')}"></div>
 
 
-<div class="card mb-4 mx-2 my-2">
-    <div class="card-body">
+<div class="container mt-4">
 
-        <input type="hidden" id="feeId">
 
-        <div class="row">
+    <div class="card">
+        <div class="card-body">
 
-            <div class="col-md-6">
-                <label>Merchant ID</label>
-                <input id="merchantId" class="form-control">
-            </div>
-            <div class="col-md-6">
-                <label>Merchant Name</label>
-                <input id="merchantName" class="form-control">
+            <input type="hidden" id="feeId">
+
+            <div class="row">
+
+                <div class="col-md-6">
+                    <label>Merchant ID</label>
+                    <input id="merchantId" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label>Merchant Name</label>
+                    <input id="merchantName" class="form-control">
+                </div>
+
+                <div class="col-md-6">
+                    <label>Fee Type</label>
+                    <input id="feeType" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label>Fee Value</label>
+                    <input id="feeValue" class="form-control">
+                </div>
+
             </div>
 
-            <div class="col-md-6">
-                <label>Fee Type</label>
-                <input id="feeType" class="form-control">
+            <div class="row mt-3">
+
+                <div class="col-md-6">
+                    <label>Effective From</label>
+                    <input type="date" id="effectiveFrom" class="form-control">
+                </div>
+
+                <div class="col-md-6">
+                    <label>Effective To</label>
+                    <input type="date" id="effectiveTo" class="form-control">
+                </div>
+
             </div>
-            <div class="col-md-6">
-                <label>Fee Value</label>
-                <input id="feeValue" class="form-control">
+
+            <div class="row mt-3">
+
+                <div class="col-md-6">
+                    <label>Active</label>
+
+                    <select id="active" class="form-select">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+
+                </div>
+
             </div>
+
+            <button id="saveBtn" onclick="save()" class="btn btn-primary mt-3">
+                Save
+            </button>
+
+            <button id="clearBtn" onclick="clearForm()" class="btn btn-secondary mt-3">
+                Clear
+            </button>
 
         </div>
-
-        <div class="row mt-3">
-
-            <div class="col-md-6">
-                <label>Effective From</label>
-                <input type="date" id="effectiveFrom" class="form-control">
-            </div>
-
-            <div class="col-md-6">
-                <label>Effective To</label>
-                <input type="date" id="effectiveTo" class="form-control">
-            </div>
-
-        </div>
-
-        <div class="row mt-3">
-
-            <div class="col-md-6">
-                <label>Active</label>
-
-                <select id="active" class="form-select">
-                    <option value="true">Active</option>
-                    <option value="false">Inactive</option>
-                </select>
-
-            </div>
-
-        </div>
-
-        <button id="saveBtn" onclick="save()" class="btn btn-primary mt-3">
-            Save
-        </button>
-
-        <button id="clearBtn" onclick="clearForm()" class="btn btn-secondary mt-3">
-            Clear
-        </button>
-
-    </div>
-</div>
-
-<div class="card mb-4 mx-2 my-2">
-
-    <div class="card-body">
-
-        <div class="row mb-3">
-
-            <div class="col-md-3">
-                <select id="searchMerchantId" class="form-select">
-                    <option value="">All Merchants</option>
-                </select>
-            </div>
-
-
-            <div class="col-md-3">
-                <select id="searchActive" class="form-select">
-                    <option value="">All</option>
-                    <option value="true">Active</option>
-                    <option value="false">Inactive</option>
-                </select>
-            </div>
-
-            <div class="col-md-2">
-                <button id="searchBtn" class="btn btn-primary">
-                    Search
-                </button>
-            </div>
-
-        </div>
-
-        <table class="table table-bordered">
-
-            <thead>
-
-            <tr>
-                <th>Merchant</th>
-                <th>Fee Type</th>
-                <th>Fee</th>
-                <th>Effective From</th>
-                <th>Effective To</th>
-                <th>Active</th>
-                <th>Action</th>
-            </tr>
-
-            </thead>
-
-            <tbody id="tableBody"></tbody>
-
-        </table>
-
     </div>
 
+    <div class="card mb-4 my-2">
+
+        <div class="card-body">
+
+            <div class="row mb-3">
+
+                <div class="col-md-3">
+                    <select id="searchMerchantId" class="form-select">
+                        <option value="">All Merchants</option>
+                    </select>
+                </div>
+
+
+                <div class="col-md-3">
+                    <select id="searchActive" class="form-select">
+                        <option value="">All</option>
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <button id="searchBtn" class="btn btn-primary">
+                        Search
+                    </button>
+                </div>
+
+            </div>
+
+            <table class="table table-bordered">
+
+                <thead>
+
+                <tr>
+                    <th>Merchant</th>
+                    <th>Fee Type</th>
+                    <th>Fee</th>
+                    <th>Effective From</th>
+                    <th>Effective To</th>
+                    <th>Active</th>
+                    <th>Action</th>
+                </tr>
+
+                </thead>
+
+                <tbody id="tableBody"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
 </div>
+
+
 
 <script src="/js/api.js"></script>
 <script src="/js/fee-config.js"></script>
