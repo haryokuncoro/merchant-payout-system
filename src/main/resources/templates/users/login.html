@@ -79,6 +79,10 @@
 
 <script>
 
+    if(sessionStorage.getItem("token")){
+        window.location = "/merchants";
+    }
+
     const form = document.getElementById("loginForm");
     const button = form.querySelector("button[type=submit]");
     const spinner = button.querySelector(".spinner-border");
