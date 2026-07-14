@@ -57,6 +57,7 @@ public class SecurityConfig {
                                 "/payouts/**",
                                 "/index.html",
                                 "/api/auth/**",
+                                "/api/admin/seed/**",
                                 "/api/webhooks/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
