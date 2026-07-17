@@ -1,0 +1,15 @@
+apiVersion: v2
+name: merchant-payout-system
+description: A Helm chart for the Merchant Payout System
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - merchant
+  - payout
+  - kafka
+  - postgresql
+maintainers:
+  - name: Development Team
+    email: dev@example.com
+

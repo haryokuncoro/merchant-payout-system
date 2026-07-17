@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secret
+  namespace: {{ .Release.Namespace }}
+type: Opaque
+stringData:
+  SPRING_DATASOURCE_URL: {{ .Values.app.secrets.SPRING_DATASOURCE_URL }}
+  SPRING_DATASOURCE_USERNAME: {{ .Values.app.secrets.SPRING_DATASOURCE_USERNAME }}
+  JWT_SECRET: {{ .Values.app.secrets.JWT_SECRET | quote }}
+  STRIPE_API_KEY_SG: {{ .Values.app.secrets.STRIPE_API_KEY_SG | quote }}
+  STRIPE_API_KEY_HK: {{ .Values.app.secrets.STRIPE_API_KEY_HK | quote }}
+  STRIPE_API_KEY_MY: {{ .Values.app.secrets.STRIPE_API_KEY_MY | quote }}
+  STRIPE_WEBHOOK_SECRET: {{ .Values.app.secrets.STRIPE_WEBHOOK_SECRET | quote }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: {{ .Release.Namespace }}
+data:
+  SPRING_PROFILES_ACTIVE: {{ .Values.app.env.SPRING_PROFILES_ACTIVE }}
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: {{ .Values.app.env.SPRING_KAFKA_BOOTSTRAP_SERVERS }}
+  STRIPE_SKIP_SIGNATURE_CHECK: {{ .Values.app.env.STRIPE_SKIP_SIGNATURE_CHECK | quote }}
+  STRIPE_MOCK_ENABLED: {{ .Values.app.env.STRIPE_MOCK_ENABLED | quote }}
+  STRIPE_MOCK_BASE_URL: {{ .Values.app.env.STRIPE_MOCK_BASE_URL }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "merchant-payout-system.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "merchant-payout-system.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.app.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "merchant-payout-system.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "merchant-payout-system.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "merchant-payout-system.serviceAccountName" . }}
+      securityContext:
+        {}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.app.port }}
+          protocol: TCP
+        env:
+        # ConfigMap values
+        {{- range $key, $value := .Values.app.env }}
+        - name: {{ $key }}
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: {{ $key }}
+        {{- end }}
+        # Secret values
+        {{- range $key, $value := .Values.app.secrets }}
+        - name: {{ $key }}
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: {{ $key }}
+        {{- end }}
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        resources:
+          {{- toYaml .Values.app.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+

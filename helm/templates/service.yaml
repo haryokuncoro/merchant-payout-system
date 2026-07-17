@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "merchant-payout-system.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "merchant-payout-system.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "merchant-payout-system.selectorLabels" . | nindent 4 }}
+
