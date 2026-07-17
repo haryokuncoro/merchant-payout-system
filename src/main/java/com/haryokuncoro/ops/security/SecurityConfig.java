@@ -55,7 +55,7 @@ public class SecurityConfig {
                                 "/fees/**",
                                 "/orders/**",
                                 "/payouts/**",
-                                "/actuator/*",
+                                "/actuator/**",
                                 "/index.html",
                                 "/api/auth/**",
                                 "/api/admin/seed/**",
