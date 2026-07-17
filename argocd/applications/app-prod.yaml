@@ -1,0 +1,124 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: merchant-payout-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: production
+  source:
+    repoURL: https://github.com/your-org/merchant-payout-system
+    targetRevision: v1.0.0
+    path: helm
+    helm:
+      releaseName: merchant-payout
+      values: |
+        replicaCount: 3
+        image:
+          repository: your-registry/merchant-payout-system
+          tag: v1.0.0
+          pullPolicy: IfNotPresent
+        
+        app:
+          replicaCount: 3
+          env:
+            SPRING_PROFILES_ACTIVE: prod
+            SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-0:9092,kafka-1:9092,kafka-2:9092
+            STRIPE_SKIP_SIGNATURE_CHECK: "false"
+            STRIPE_MOCK_ENABLED: "false"
+            STRIPE_MOCK_BASE_URL: ""
+          secrets:
+            SPRING_DATASOURCE_URL: "jdbc:postgresql://postgresql:5432/payout_system"
+            SPRING_DATASOURCE_USERNAME: postgres
+            JWT_SECRET: "" # Set via external secret management
+            STRIPE_API_KEY_SG: "" # Set via external secret management
+            STRIPE_API_KEY_HK: "" # Set via external secret management
+            STRIPE_API_KEY_MY: "" # Set via external secret management
+            STRIPE_WEBHOOK_SECRET: "" # Set via external secret management
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+        
+        postgresql:
+          enabled: true
+          auth:
+            password: "" # Set via external secret management
+          primary:
+            persistence:
+              size: 100Gi
+              storageClassName: gp3
+        
+        kafka:
+          enabled: true
+          replicaCount: 3
+          persistence:
+            size: 100Gi
+            storageClassName: gp3
+        
+        stripeMock:
+          enabled: false
+        
+        ingress:
+          enabled: true
+          className: nginx
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-prod
+            nginx.ingress.kubernetes.io/ssl-redirect: "true"
+          hosts:
+            - host: payout.example.com
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: payout-tls
+              hosts:
+                - payout.example.com
+        
+        autoscaling:
+          enabled: true
+          minReplicas: 3
+          maxReplicas: 10
+          targetCPUUtilizationPercentage: 60
+        
+        nodeSelector:
+          workload: payout-system
+        
+        tolerations:
+          - key: workload
+            operator: Equal
+            value: payout-system
+            effect: NoSchedule
+        
+        affinity:
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchExpressions:
+                    - key: app.kubernetes.io/name
+                      operator: In
+                      values:
+                        - merchant-payout-system
+                topologyKey: kubernetes.io/hostname
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: merchant-payout-prod
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+

@@ -1,0 +1,97 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: merchant-payout-environments
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - name: dev
+            namespace: merchant-payout-dev
+            branch: develop
+            image_tag: develop
+            replica_count: "1"
+            kafka_replicas: "1"
+            db_size: 5Gi
+            kafka_size: 5Gi
+          - name: staging
+            namespace: merchant-payout-staging
+            branch: main
+            image_tag: staging
+            replica_count: "2"
+            kafka_replicas: "2"
+            db_size: 20Gi
+            kafka_size: 20Gi
+          - name: prod
+            namespace: merchant-payout-prod
+            branch: v1.0.0
+            image_tag: v1.0.0
+            replica_count: "3"
+            kafka_replicas: "3"
+            db_size: 100Gi
+            kafka_size: 100Gi
+  template:
+    metadata:
+      name: merchant-payout-{{ name }}
+      namespace: argocd
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: "{{ name == 'prod' | ternary 'production' 'default' }}"
+      source:
+        repoURL: https://github.com/your-org/merchant-payout-system
+        targetRevision: "{{ branch }}"
+        path: helm
+        helm:
+          releaseName: merchant-payout
+          values: |
+            replicaCount: {{ replica_count }}
+            image:
+              repository: your-registry/merchant-payout-system
+              tag: {{ image_tag }}
+              pullPolicy: IfNotPresent
+            
+            app:
+              replicaCount: {{ replica_count }}
+              env:
+                SPRING_PROFILES_ACTIVE: {{ name }}
+                SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+              secrets:
+                SPRING_DATASOURCE_URL: "jdbc:postgresql://postgresql:5432/payout_system"
+                SPRING_DATASOURCE_USERNAME: postgres
+                JWT_SECRET: ""
+                STRIPE_API_KEY_SG: ""
+                STRIPE_API_KEY_HK: ""
+                STRIPE_API_KEY_MY: ""
+                STRIPE_WEBHOOK_SECRET: ""
+            
+            postgresql:
+              enabled: true
+              primary:
+                persistence:
+                  size: {{ db_size }}
+            
+            kafka:
+              enabled: true
+              replicaCount: {{ kafka_replicas }}
+              persistence:
+                size: {{ kafka_size }}
+
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{ namespace }}"
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+

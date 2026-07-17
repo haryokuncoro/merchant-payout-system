@@ -1,0 +1,83 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: merchant-payout-dev
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/your-org/merchant-payout-system
+    targetRevision: develop
+    path: helm
+    helm:
+      releaseName: merchant-payout
+      values: |
+        replicaCount: 1
+        image:
+          repository: your-registry/merchant-payout-system
+          tag: develop
+          pullPolicy: IfNotPresent
+        
+        app:
+          replicaCount: 1
+          env:
+            SPRING_PROFILES_ACTIVE: dev
+            SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+            STRIPE_SKIP_SIGNATURE_CHECK: "true"
+            STRIPE_MOCK_ENABLED: "true"
+            STRIPE_MOCK_BASE_URL: "http://stripe-mock:12111"
+          secrets:
+            SPRING_DATASOURCE_URL: "jdbc:postgresql://postgresql:5432/payout_system"
+            SPRING_DATASOURCE_USERNAME: postgres
+            JWT_SECRET: "dev-secret-key"
+            STRIPE_API_KEY_SG: "sk_test_dev"
+            STRIPE_API_KEY_HK: "sk_test_dev"
+            STRIPE_API_KEY_MY: "sk_test_dev"
+            STRIPE_WEBHOOK_SECRET: "whsec_test_dev"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "250m"
+        
+        postgresql:
+          enabled: true
+          auth:
+            password: postgres
+        
+        kafka:
+          enabled: true
+          replicaCount: 1
+          persistence:
+            size: 5Gi
+        
+        stripeMock:
+          enabled: true
+        
+        ingress:
+          enabled: false
+        
+        autoscaling:
+          enabled: false
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: merchant-payout-dev
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+

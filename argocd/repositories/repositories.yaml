@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-repo
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  type: git
+  url: https://github.com/your-org/merchant-payout-system
+  username: github-username
+  password: github-token-or-password
+  # For SSH authentication, use this instead:
+  # sshPrivateKey: |
+  #   -----BEGIN OPENSSH PRIVATE KEY-----
+  #   ... your ssh key ...
+  #   -----END OPENSSH PRIVATE KEY-----
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: docker-registry
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  type: helm
+  name: your-registry
+  url: https://your-registry.azurecr.io
+  username: registry-username
+  password: registry-password
+  # If using Docker Hub:
+  # url: https://registry-1.docker.io
+  # username: your-docker-username
+  # password: your-docker-token
+

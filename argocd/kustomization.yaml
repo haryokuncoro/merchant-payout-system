@@ -1,0 +1,59 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: argocd
+
+resources:
+  - namespace.yaml
+  - projects/projects.yaml
+  - repositories/repositories.yaml
+  - config/argocd-cm.yaml
+  - bootstrap/argocd-app.yaml
+
+# Patches for environment-specific configurations
+patchesStrategicMerge:
+  - |-
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      name: argocd
+    spec:
+      source:
+        helm:
+          values: |
+            server:
+              service:
+                type: LoadBalancer
+
+configMapGenerator:
+  - name: argocd-env-config
+    literals:
+      - ARGOCD_REPO_URL=https://github.com/your-org/merchant-payout-system
+      - ARGOCD_NAMESPACE=merchant-payout-dev
+      - ARGOCD_NAMESPACE_STAGING=merchant-payout-staging
+      - ARGOCD_NAMESPACE_PROD=merchant-payout-prod
+
+secretGenerator:
+  - name: github-credentials
+    literals:
+      - username=your-username
+      - token=your-token
+    options:
+      annotations:
+        kustomize.config.k8s.io/needs-hash: "true"
+
+# Common labels applied to all resources
+commonLabels:
+  app.kubernetes.io/name: argocd
+  app.kubernetes.io/part-of: merchant-payout-system
+  app.kubernetes.io/managed-by: kustomize
+
+# Common annotations applied to all resources
+commonAnnotations:
+  co.elastic.logs/enabled: "true"
+
+# Image override (useful for different registries/versions)
+images:
+  - name: ghcr.io/argoproj/argocd
+    newTag: v2.9.2
+
