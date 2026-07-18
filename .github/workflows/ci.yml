@@ -11,12 +11,16 @@ permissions:
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/merchant-payout-system
+  GITOPS_REPO: ${{ github.repository_owner }}/merchant-payout-system-gitops
 
 jobs:
 
   build:
 
     runs-on: ubuntu-latest
+
+    outputs:
+      image_tag: ${{ steps.set_tag.outputs.image_tag }}
 
     steps:
 
@@ -31,8 +35,10 @@ jobs:
         run: ./gradlew clean build -x test
 
       - name: Set Image Tag
+        id: set_tag
         run: |
           echo "IMAGE_TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
+          echo "image_tag=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
       - name: Login GHCR
         run: |
@@ -48,3 +54,44 @@ jobs:
       - name: Push Image
         run: |
           docker push $IMAGE_NAME:$IMAGE_TAG
+
+  update-gitops:
+
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout GitOps repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.GITOPS_REPO }}
+          token: ${{ secrets.GITOPS_PAT }}
+          path: gitops
+
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Update image tag
+        working-directory: gitops
+        run: |
+          yq -i '.image.tag = "${{ needs.build.outputs.image_tag }}"' charts/payout-system/values/staging.yaml
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITOPS_PAT }}
+          path: gitops
+          branch: update-image-${{ needs.build.outputs.image_tag }}
+          base: main
+          title: "chore: update staging image tag to ${{ needs.build.outputs.image_tag }}"
+          commit-message: "chore: update staging image tag to ${{ needs.build.outputs.image_tag }}"
+          body: |
+            Automated image tag update from [${{ github.repository }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}).
+            
+            File: `charts/payout-system/values/staging.yaml`
+            Image: `${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image_tag }}`
+          delete-branch: true
