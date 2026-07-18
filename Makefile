@@ -10,11 +10,5 @@ build:
 load: build
 	kind load docker-image $(IMAGE_NAME):$(IMAGE_TAG) --name $(KIND_CLUSTER)
 
-deploy:
-	argocd app sync backend-local
-
-restart:
-	kubectl rollout restart deployment/backend -n backend
-
 clean:
 	docker rmi $(IMAGE_NAME):$(IMAGE_TAG)
