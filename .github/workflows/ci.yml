@@ -28,7 +28,7 @@ jobs:
           java-version: 21
 
       - name: Build Jar
-        run: ./mvnw clean package -DskipTests
+        run: ./gradlew clean build -x test
 
       - name: Set Image Tag
         run: |
