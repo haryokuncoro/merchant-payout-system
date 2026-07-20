@@ -34,7 +34,7 @@ public interface BillingOrderRepository extends JpaRepository<BillingOrder, UUID
         where bo.paymentStatus = 'PAID'
           and bo.paidAt >= :periodStart
           and bo.paidAt < :periodEnd
-          and bo.payout.id is null
+          and bo.payout.id is null or bo.payout.status IN ('FAILED','CANCELED')
         """)
     List<UUID> findUniqueMerchantIdsEligibleForPayout(
             Instant periodStart,
