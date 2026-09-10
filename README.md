@@ -1,3 +1,5 @@
+<img src="images/swagger-ui.png" alt="swagger-ui screenshot">
+
 # Merchant Payout System API
 
 A REST API for managing merchants, fee configurations, billing orders, and payouts — including Stripe webhook ingestion and a dead-letter-queue (DLQ) admin interface for replaying failed events.
