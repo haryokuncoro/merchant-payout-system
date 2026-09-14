@@ -3,6 +3,7 @@ package com.haryokuncoro.ops.controller;
 import com.haryokuncoro.ops.dto.ApiResponse;
 import com.haryokuncoro.ops.dto.CreateOrderRequest;
 import com.haryokuncoro.ops.dto.GetOrderResponse;
+import com.haryokuncoro.ops.dto.constants.ApiVersions;
 import com.haryokuncoro.ops.service.OrderService;
 import com.haryokuncoro.ops.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/orders")
+@RequestMapping(ApiVersions.V1 + "/orders")
 @RequiredArgsConstructor
 public class OrderController {
 

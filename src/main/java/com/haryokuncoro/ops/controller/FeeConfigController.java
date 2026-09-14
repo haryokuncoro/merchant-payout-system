@@ -5,6 +5,7 @@ import com.haryokuncoro.ops.dto.ApiResponse;
 import com.haryokuncoro.ops.dto.CreateFeeConfigRequest;
 import com.haryokuncoro.ops.dto.GetFeeConfigResponse;
 import com.haryokuncoro.ops.dto.UpdateFeeConfigRequest;
+import com.haryokuncoro.ops.dto.constants.ApiVersions;
 import com.haryokuncoro.ops.service.FeeConfigService;
 import com.haryokuncoro.ops.util.ResponseUtil;
 import jakarta.validation.Valid;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/fee-configs")
+@RequestMapping(ApiVersions.V1 + "/fee-configs")
 @RequiredArgsConstructor
 public class FeeConfigController {
 

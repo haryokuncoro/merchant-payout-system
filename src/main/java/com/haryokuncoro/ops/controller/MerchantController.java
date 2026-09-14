@@ -5,6 +5,7 @@ import com.haryokuncoro.ops.dto.ApiResponse;
 import com.haryokuncoro.ops.dto.CreateMerchantRequest;
 import com.haryokuncoro.ops.dto.GetMerchantResponse;
 import com.haryokuncoro.ops.dto.UpdateMerchantRequest;
+import com.haryokuncoro.ops.dto.constants.ApiVersions;
 import com.haryokuncoro.ops.entity.Merchant;
 import com.haryokuncoro.ops.service.MerchantService;
 import com.haryokuncoro.ops.util.ResponseUtil;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/merchants")
+@RequestMapping(ApiVersions.V1 + "/merchants")
 @Slf4j
 public class MerchantController {
 

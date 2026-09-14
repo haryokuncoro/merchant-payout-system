@@ -25,7 +25,7 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // 🔥 CORS CONFIG for localhost
+    // CORS config for localhost
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -50,23 +50,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/",
-                                "/login/**",
-                                "/merchants/**",
-                                "/fees/**",
-                                "/orders/**",
-                                "/payouts/**",
                                 "/actuator/**",
-                                "/index.html",
                                 "/api/auth/**",
                                 "/api/admin/seed/**",
                                 "/api/webhooks/**",
                                 "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/css/**",
-                                "/js/**",
-                                "/images/**",
-                                "/favicon.ico",
-                                "/webjars/**"
+                                "/swagger-ui/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

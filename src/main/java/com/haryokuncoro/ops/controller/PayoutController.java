@@ -4,6 +4,7 @@ import com.haryokuncoro.ops.dto.ApiResponse;
 import com.haryokuncoro.ops.dto.CreatePayoutJobRequest;
 import com.haryokuncoro.ops.dto.CreatePayoutRequest;
 import com.haryokuncoro.ops.dto.GetPayoutResponse;
+import com.haryokuncoro.ops.dto.constants.ApiVersions;
 import com.haryokuncoro.ops.service.PayoutService;
 import com.haryokuncoro.ops.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ import java.util.UUID;
 
 
 @RestController
-@RequestMapping("/api/payouts")
+@RequestMapping(ApiVersions.V1 + "/payouts")
 @RequiredArgsConstructor
 public class PayoutController {
     private final PayoutService payoutService;
