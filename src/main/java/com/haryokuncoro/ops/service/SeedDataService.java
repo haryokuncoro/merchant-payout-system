@@ -126,7 +126,7 @@ public class SeedDataService {
         for (Merchant merchant : merchants) {
             Random random = new Random();
             BigDecimal amount = BigDecimal.valueOf(10.0);
-            for(int i=1;i<=25;i++){
+            for(int i=1;i<=5;i++){
                 String orderNo = "0001"+i;
                 Long number = random.nextLong(5, 20);
                 amount = amount.add(BigDecimal.valueOf(number));
