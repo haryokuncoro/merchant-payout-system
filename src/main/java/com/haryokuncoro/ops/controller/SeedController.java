@@ -24,4 +24,10 @@ public class SeedController {
         seedDataService.seedOrderData();
         return ResponseEntity.ok("finished seeding order data");
     }
+
+    @PostMapping("/basic/orders")
+    public ResponseEntity<String> seedOrdersV2() {
+        seedDataService.seedOrderDataV2();
+        return ResponseEntity.ok("finished seeding order data");
+    }
 }
