@@ -41,7 +41,7 @@ public class SeedDataService {
 
         List<Merchant> merchants = new ArrayList<>();
 
-        for (int i = 1; i <= 1000; i++) {
+        for (int i = 1; i <= 20; i++) {
 
             Merchant merchant = Merchant.builder()
                     .merchantCode("MRC-%03d".formatted(i))
