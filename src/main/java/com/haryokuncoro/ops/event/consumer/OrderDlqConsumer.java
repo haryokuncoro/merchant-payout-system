@@ -14,6 +14,7 @@ import java.time.Instant;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+
 public class OrderDlqConsumer {
 
     private final FailedEventRepository repository;

@@ -1,10 +1,10 @@
 package com.haryokuncoro.ops.event.consumer;
 
-import com.haryokuncoro.ops.dto.PayoutJobEvent;
 import com.haryokuncoro.ops.dto.StripePayoutJobEvent;
 import com.haryokuncoro.ops.service.PayoutService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.kafka.support.Acknowledgment;
@@ -14,6 +14,11 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnProperty(
+        name = "demo.mode",
+        havingValue = "false",
+        matchIfMissing = true
+)
 public class StripePayoutConsumer {
     private final PayoutService payoutService;
 
