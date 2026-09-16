@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-
 public class OrderEventPublisher {
 
     private static final String TOPIC = "order.created";

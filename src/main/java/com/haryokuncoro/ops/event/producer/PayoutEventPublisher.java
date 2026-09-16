@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-
 public class PayoutEventPublisher {
 
     private static final String TOPIC = "payout.created";
