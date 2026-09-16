@@ -6,6 +6,7 @@ import com.haryokuncoro.ops.entity.FailedEvent;
 import com.haryokuncoro.ops.repository.FailedEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +15,11 @@ import java.time.Instant;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-
+@ConditionalOnProperty(
+        name = "demo.mode",
+        havingValue = "false",
+        matchIfMissing = true
+)
 public class OrderDlqConsumer {
 
     private final FailedEventRepository repository;
